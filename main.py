@@ -8,23 +8,34 @@ model = BertForSequenceClassification.from_pretrained(model_name)
 
 finbert = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
 
-with open("test_X.txt", 'rt') as infile:
-    raw = infile.readlines()
-    data = []
-    for record in raw:
-        data.append(json.loads(record))
-# print(data[0]['title'])
+quotes = [
+    "AAPL",
+    "GOOG",
+    "NVDA",
+    "META",
+    "INTC",
+    "AMD"
+]
 
-titles = []
-for record in data:
-    titles.append(record['title'])
+for quote in quotes:
+    with open(f"./news/news_{quote}.txt", 'rt') as infile:
+        raw = infile.readlines()
+        data = [d.strip("\n") for d in raw]
 
-results = []
-for record in data:
-    pred = finbert(titles)
-    results.append(pred)
+    # with open("test_X.txt", 'rt') as infile:
+    #     raw = infile.readlines()
+    #     data = []
+    #     for record in raw:
+    #         data.append(json.loads(record))
+    # print(data[0]['title'])
 
-print(results)
+    # titles = []
+    # for record in data:
+    #     titles.append(record)
+
+    pred = finbert(data)
+
+    # print(pred)
 
 # try:
 #     for i, result in enumerate(results):
@@ -32,5 +43,27 @@ print(results)
 # except:
 #     pass
 
-with open("predictions.txt", 'wt') as outfile:
-    outfile.writelines([json.dumps(results)])
+    with open(f"./predictions/predictions_{quote}.txt", 'wt') as outfile:
+        outfile.writelines([json.dumps(pred)])
+
+    binary = {
+        "positive": 1,
+        "negative": -1
+    }
+
+    positives = 0
+    neutrals = 0
+    negatives = 0
+    for p in pred:
+        if p['label'] == "positive":
+            positives += 1
+        elif p['label'] == "neutral":
+            neutrals += 1
+        else:
+            negatives += 1
+
+    print(f"Quote: {quote}")
+    print(f"Positives: {positives}")
+    print(f"Negatives: {negatives}")
+    print(f"Neutrals: {neutrals}")
+    print()

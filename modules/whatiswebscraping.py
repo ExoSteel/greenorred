@@ -17,58 +17,89 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--disable-gpu") # Often fixes crashes in Linux
 chrome_options.add_argument("--window-size=1920,1080") # Set a virtual resolution
+chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1"
+}
+
+quotes = [
+    # "AAPL",
+    "GOOG",
+    "NVDA",
+    "META",
+    "INTC",
+    "AMD"
+]
 
 driver = webdriver.Chrome(options=chrome_options)
 
-url = "https://sg.finance.yahoo.com"
+url = "https://sg.finance.yahoo.com/quote/"
 
-resp = requests.get(url, headers = {'User-agent': 'beep boop bot'})
-
-# print(resp.content)
-soup = BeautifulSoup(resp.content, "html.parser")
-# print(content)
-headlines = soup.find_all(class_="titles")
-# print(headlines[0].parent)
-
-articles = []
-
-for i, art in enumerate(headlines):
-    article = {}
-    article['title'] = art.find(['h2','h3']).text
-    # article['text'] = art.find(['p'])
-    # print(article['title'] if article['title'] else art)
-    try:
-        article['link'] = art['href']
-    except:
-        # print(art.parent)
-        article['link'] = art.parent['href']
-    articles.append(article)
-
+for quote in quotes:
+    print(f"Quote {quote} Started.")
+    url = url + quote + "/news/"
+    resp = requests.get(url, headers=headers)
     
-    driver.get(article['link'])
+    soup = BeautifulSoup(resp.content, "html.parser")
 
-    # page = BeautifulSoup(driver.page_source, 'html.parser')
+    with open(".txt", 'wt') as infile:
+        infile.write(resp.content.decode('utf-8'))
+    break
+    # headlines = soup.find_all(class_="titles")
+    # # print(headlines[0].parent)
 
-    # print(article['link'])
-    # print(page)
+    # articles = []
 
-    html = driver.page_source
-    page = Article(article['link'])
-    page.download(input_html=html)
-    page.parse()
+    # for i, art in enumerate(headlines):
+    #     article = {}
+    #     article['title'] = art.find(['h2','h3']).text
+    #     # article['text'] = art.find(['p'])
+    #     # print(article['title'] if article['title'] else art)
+    #     try:
+    #         article['link'] = art['href']
+    #     except:
+    #         # print(art.parent)
+    #         article['link'] = art.parent['href']
+    #     articles.append(article)
 
-    # print(page.title)
-    # print(page.text)
+        
+    #     driver.get(article['link'])
 
-    article['text'] = page.text
-    
-    articles.append(article)
+    #     # page = BeautifulSoup(driver.page_source, 'html.parser')
+
+    #     # print(article['link'])
+    #     # print(page)
+
+    #     html = driver.page_source
+    #     page = Article(article['link'])
+    #     page.download(input_html=html)
+    #     page.parse()
+
+    #     # print(page.title)
+    #     # print(page.text)
+
+    #     article['text'] = page.text
+        
+    #     articles.append(article)
 
 
-pprint(articles)
 
-driver.quit()
+    # pprint(articles)
 
-with open("test_X.txt", 'w') as infile:
-    infile.writelines([json.dumps(d) + "\n" for d in articles])
+    # driver.quit()
+
+    # with open(f"news_{quote}.txt", 'w') as infile:
+    #     infile.writelines([json.dumps(d) + "\n" for d in articles])
+
+    # print(f"Quote {quote} Finished.")
+    # print()
