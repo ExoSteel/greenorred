@@ -45,6 +45,10 @@ driver = webdriver.Chrome(options=chrome_options)
 
 url = "https://sg.finance.yahoo.com/quote/"
 
+# https://www.cnbc.com/finance/
+# https://www.reuters.com/business/finance/
+# https://news.google.com/search?q=
+
 for quote in quotes:
     print(f"Quote {quote} Started.")
     url = url + quote + "/news/"

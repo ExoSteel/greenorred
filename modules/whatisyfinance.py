@@ -7,7 +7,14 @@ tickers = [
     "NVDA",
     "META",
     "INTC",
-    "AMD"
+    "AMD",
+    "TSM",
+    "NFLX",
+    "T",
+    "V",
+    "MA",
+    "COST",
+    "700"
 ]
 
 

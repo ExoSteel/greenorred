@@ -14,13 +14,24 @@ quotes = [
     "NVDA",
     "META",
     "INTC",
-    "AMD"
+    "AMD",
+    "TSM",
+    "NFLX",
+    "T",
+    "V",
+    "MA",
+    "COST",
+    "BTC"
+    # "700"
 ]
 
 for quote in quotes:
     with open(f"./news/news_{quote}.txt", 'rt') as infile:
         raw = infile.readlines()
         data = [d.strip("\n") for d in raw]
+
+    if data == []:
+        continue
 
     # with open("test_X.txt", 'rt') as infile:
     #     raw = infile.readlines()
