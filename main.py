@@ -8,22 +8,9 @@ model = BertForSequenceClassification.from_pretrained(model_name)
 
 finbert = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
 
-quotes = [
-    "AAPL",
-    "GOOG",
-    "NVDA",
-    "META",
-    "INTC",
-    "AMD",
-    "TSM",
-    "NFLX",
-    "T",
-    "V",
-    "MA",
-    "COST",
-    "BTC"
-    # "700"
-]
+with open("tickers.txt", "rt") as infile:
+    data = infile.readlines()
+    quotes = [d.strip("\n") for d in data]
 
 for quote in quotes:
     with open(f"./news/news_{quote}.txt", 'rt') as infile:
@@ -48,11 +35,11 @@ for quote in quotes:
 
     # print(pred)
 
-# try:
-#     for i, result in enumerate(results):
-#         print(f"Headline: {titles[i]}, Label: {result['label']}, Score: {result['score']:.4f}")
-# except:
-#     pass
+    # try:
+    #     for i, result in enumerate(results):
+    #         print(f"Headline: {titles[i]}, Label: {result['label']}, Score: {result['score']:.4f}")
+    # except:
+    #     pass
 
     with open(f"./predictions/predictions_{quote}.txt", 'wt') as outfile:
         outfile.writelines([json.dumps(pred)])

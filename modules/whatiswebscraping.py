@@ -32,14 +32,9 @@ headers = {
     "Sec-Fetch-User": "?1"
 }
 
-quotes = [
-    # "AAPL",
-    "GOOG",
-    "NVDA",
-    "META",
-    "INTC",
-    "AMD"
-]
+with open("tickers.txt", "rt") as infile:
+    data = infile.readlines()
+    quotes = [d.strip("\n") for d in data]
 
 driver = webdriver.Chrome(options=chrome_options)
 
