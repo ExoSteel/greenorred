@@ -1,0 +1,55 @@
+Symbol,INTC
+AssetType,Common Stock
+Name,Intel Corporation
+Description,"Intel Corporation is an American multinational corporation and technology company headquartered in Santa Clara, California, in Silicon Valley. It is the world's largest semiconductor chip manufacturer by revenue, and is the developer of the x86 series of microprocessors, the processors found in most personal computers (PCs)."
+CIK,50863
+Exchange,NASDAQ
+Currency,USD
+Country,USA
+Sector,TECHNOLOGY
+Industry,SEMICONDUCTORS
+Address,"2200 MISSION COLLEGE BOULEVARD, SANTA CLARA, CA, UNITED STATES, 95054-1549"
+OfficialSite,https://www.intel.com
+FiscalYearEnd,December
+LatestQuarter,2026-03-31
+MarketCapitalization,427159716000
+EBITDA,14174000000
+PERatio,None
+PEGRatio,0.501
+BookValue,22.88
+DividendPerShare,None
+DividendYield,None
+EPS,-0.6
+RevenuePerShareTTM,11.4
+ProfitMargin,-0.059
+OperatingMarginTTM,0.0688
+ReturnOnAssetsTTM,0.0063
+ReturnOnEquityTTM,-0.0291
+RevenueTTM,53762998000
+GrossProfitTTM,20000000000
+DilutedEPSTTM,-0.6
+QuarterlyEarningsGrowthYOY,-0.717
+QuarterlyRevenueGrowthYOY,0.072
+AnalystTargetPrice,75.42
+AnalystRatingStrongBuy,1
+AnalystRatingBuy,8
+AnalystRatingHold,33
+AnalystRatingSell,2
+AnalystRatingStrongSell,4
+TrailingPE,-
+ForwardPE,161.29
+PriceToSalesRatioTTM,7.95
+PriceToBookRatio,3.724
+EVToRevenue,7.94
+EVToEBITDA,37.4
+Beta,1.349
+52WeekHigh,87.1
+52WeekLow,18.96
+50DayMovingAverage,51.03
+200DayMovingAverage,38.45
+SharesOutstanding,5026000000
+SharesFloat,5016853000
+PercentInsiders,12.961
+PercentInstitutions,61.699
+DividendDate,2024-09-01
+ExDividendDate,2024-08-07

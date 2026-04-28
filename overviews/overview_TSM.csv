@@ -1,0 +1,55 @@
+Symbol,TSM
+AssetType,Common Stock
+Name,Taiwan Semiconductor Manufacturing
+Description,"Taiwan Semiconductor Manufacturing Company, Limited is a Taiwanese multinational semiconductor contract manufacturing and design company. It is one of Taiwan's largest companies, the world's most valuable semiconductor company, and the world's largest dedicated independent (pure-play) semiconductor foundry, with its headquarters and main operations located in the Hsinchu Science Park in Hsinchu, Taiwan. It is majority owned by foreign investors."
+CIK,1046179
+Exchange,NYSE
+Currency,USD
+Country,USA
+Sector,TECHNOLOGY
+Industry,SEMICONDUCTORS
+Address,"HSINCHU SCIENCE PARK, HSINCHU CITY, TAIWAN, 300096"
+OfficialSite,https://www.tsmc.com
+FiscalYearEnd,December
+LatestQuarter,2026-03-31
+MarketCapitalization,2100388430000
+EBITDA,2856460222000
+PERatio,34.73
+PEGRatio,1.313
+BookValue,6.54
+DividendPerShare,17
+DividendYield,0.0087
+EPS,11.66
+RevenuePerShareTTM,98.92
+ProfitMargin,0.465
+OperatingMarginTTM,0.581
+ReturnOnAssetsTTM,0.173
+ReturnOnEquityTTM,0.362
+RevenueTTM,4103903379000
+GrossProfitTTM,2539193893000
+DilutedEPSTTM,11.66
+QuarterlyEarningsGrowthYOY,0.584
+QuarterlyRevenueGrowthYOY,0.351
+AnalystTargetPrice,463.45
+AnalystRatingStrongBuy,6
+AnalystRatingBuy,12
+AnalystRatingHold,1
+AnalystRatingSell,0
+AnalystRatingStrongSell,0
+TrailingPE,34.73
+ForwardPE,27.03
+PriceToSalesRatioTTM,0.512
+PriceToBookRatio,11.26
+EVToRevenue,13.71
+EVToEBITDA,24.68
+Beta,1.251
+52WeekHigh,414.5
+52WeekLow,160.06
+50DayMovingAverage,357.74
+200DayMovingAverage,302.24
+SharesOutstanding,5186400000
+SharesFloat,24177671000
+PercentInsiders,0.050
+PercentInstitutions,15.728
+DividendDate,2026-07-09
+ExDividendDate,2026-06-11

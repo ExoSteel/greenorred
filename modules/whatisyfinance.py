@@ -1,21 +1,10 @@
 import yfinance as yf
 import json
 
-tickers = [
-    "AAPL",
-    "GOOG",
-    "NVDA",
-    "META",
-    "INTC",
-    "AMD",
-    "TSM",
-    "NFLX",
-    "T",
-    "V",
-    "MA",
-    "COST",
-    "700"
-]
+with open("tickers.txt", "rt") as infile:
+    data = infile.readlines()
+    tickers = [d.strip("\n") for d in data]
+
 
 
 for ticker in tickers:

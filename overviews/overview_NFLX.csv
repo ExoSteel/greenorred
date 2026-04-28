@@ -1,0 +1,55 @@
+Symbol,NFLX
+AssetType,Common Stock
+Name,Netflix Inc
+Description,"Netflix, Inc. is an American over-the-top content platform and production company headquartered in Los Gatos, California. Netflix was founded in 1997 by Reed Hastings and Marc Randolph in Scotts Valley, California. The company's primary business is a subscription-based streaming service offering online streaming from a library of films and television series, including those produced in-house."
+CIK,1065280
+Exchange,NASDAQ
+Currency,USD
+Country,USA
+Sector,COMMUNICATION SERVICES
+Industry,ENTERTAINMENT
+Address,"121 ALBRIGHT WAY, LOS GATOS, CA, UNITED STATES, 95032"
+OfficialSite,https://www.netflix.com
+FiscalYearEnd,December
+LatestQuarter,2026-03-31
+MarketCapitalization,384740688000
+EBITDA,14288498000
+PERatio,29.47
+PEGRatio,1.8
+BookValue,6.3
+DividendPerShare,None
+DividendYield,None
+EPS,3.1
+RevenuePerShareTTM,11.07
+ProfitMargin,0.285
+OperatingMarginTTM,0.323
+ReturnOnAssetsTTM,0.154
+ReturnOnEquityTTM,0.485
+RevenueTTM,46889992000
+GrossProfitTTM,22989572000
+DilutedEPSTTM,3.1
+QuarterlyEarningsGrowthYOY,0.864
+QuarterlyRevenueGrowthYOY,0.162
+AnalystTargetPrice,114.38
+AnalystRatingStrongBuy,10
+AnalystRatingBuy,27
+AnalystRatingHold,13
+AnalystRatingSell,0
+AnalystRatingStrongSell,1
+TrailingPE,29.47
+ForwardPE,28.57
+PriceToSalesRatioTTM,8.21
+PriceToBookRatio,12.36
+EVToRevenue,8.25
+EVToEBITDA,11.35
+Beta,1.669
+52WeekHigh,134.12
+52WeekLow,75.01
+50DayMovingAverage,93.45
+200DayMovingAverage,104.82
+SharesOutstanding,4210799000
+SharesFloat,4183515000
+PercentInsiders,0.581
+PercentInstitutions,83.991
+DividendDate,None
+ExDividendDate,None

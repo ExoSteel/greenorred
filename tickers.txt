@@ -11,3 +11,5 @@ V
 MA
 COST
 BTC
+ZM
+AMZN
