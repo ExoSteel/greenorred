@@ -1,5 +1,5 @@
 .venv/
 .vscode/
+.streamlit/
 .txt
 .env
-.streamlit/
