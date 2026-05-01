@@ -1,0 +1,55 @@
+Symbol,AMD
+AssetType,Common Stock
+Name,Advanced Micro Devices Inc
+Description,"Advanced Micro Devices, Inc. (AMD) is an American multinational semiconductor company based in Santa Clara, California, that develops computer processors and related technologies for business and consumer markets. AMD's main products include microprocessors, motherboard chipsets, embedded processors and graphics processors for servers, workstations, personal computers and embedded system applications."
+CIK,2488
+Exchange,NASDAQ
+Currency,USD
+Country,USA
+Sector,TECHNOLOGY
+Industry,SEMICONDUCTORS
+Address,"2485 AUGUSTINE DRIVE, SANTA CLARA, CA, UNITED STATES, 95054"
+OfficialSite,https://www.amd.com
+FiscalYearEnd,December
+LatestQuarter,2025-12-31
+MarketCapitalization,545584415000
+EBITDA,6745000000
+PERatio,128.21
+PEGRatio,1.032
+BookValue,38.65
+DividendPerShare,None
+DividendYield,None
+EPS,2.61
+RevenuePerShareTTM,21.33
+ProfitMargin,0.125
+OperatingMarginTTM,0.171
+ReturnOnAssetsTTM,0.032
+ReturnOnEquityTTM,0.0708
+RevenueTTM,34639000000
+GrossProfitTTM,18183000000
+DilutedEPSTTM,2.61
+QuarterlyEarningsGrowthYOY,2.171
+QuarterlyRevenueGrowthYOY,0.341
+AnalystTargetPrice,295.76
+AnalystRatingStrongBuy,5
+AnalystRatingBuy,33
+AnalystRatingHold,12
+AnalystRatingSell,0
+AnalystRatingStrongSell,0
+TrailingPE,128.21
+ForwardPE,51.81
+PriceToSalesRatioTTM,15.75
+PriceToBookRatio,9.0
+EVToRevenue,16.18
+EVToEBITDA,77.02
+Beta,1.963
+52WeekHigh,352.99
+52WeekLow,91.87
+50DayMovingAverage,224.15
+200DayMovingAverage,207.55
+SharesOutstanding,1630339000
+SharesFloat,1621492000
+PercentInsiders,0.435
+PercentInstitutions,72.112
+DividendDate,None
+ExDividendDate,1995-04-27

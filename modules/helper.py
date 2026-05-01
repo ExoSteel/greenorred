@@ -47,4 +47,6 @@ def readOverview(ticker):
 
 if __name__ == "__main__":
     # addTicker("AMZN")
-    readOverview("AAPL")
+    # readOverview("AAPL")
+    data = readCandle("AAPL")
+    print(data.iloc[0])

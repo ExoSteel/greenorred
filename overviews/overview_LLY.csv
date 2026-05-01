@@ -1,0 +1,55 @@
+Symbol,LLY
+AssetType,Common Stock
+Name,Eli Lilly and Company
+Description,"Eli Lilly and Company is an American pharmaceutical company headquartered in Indianapolis, Indiana, with offices in 18 countries. Its products are sold in approximately 125 countries."
+CIK,59478
+Exchange,NYSE
+Currency,USD
+Country,USA
+Sector,HEALTHCARE
+Industry,DRUG MANUFACTURERS - GENERAL
+Address,"LILLY CORPORATE CENTER, INDIANAPOLIS, IN, UNITED STATES, 46285"
+OfficialSite,https://www.lilly.com
+FiscalYearEnd,December
+LatestQuarter,2025-12-31
+MarketCapitalization,775675511000
+EBITDA,31693001000
+PERatio,37.88
+PEGRatio,1.279
+BookValue,29.66
+DividendPerShare,6
+DividendYield,0.0068
+EPS,22.92
+RevenuePerShareTTM,72.64
+ProfitMargin,0.317
+OperatingMarginTTM,0.449
+ReturnOnAssetsTTM,0.194
+ReturnOnEquityTTM,1.012
+RevenueTTM,65179001000
+GrossProfitTTM,54127002000
+DilutedEPSTTM,22.92
+QuarterlyEarningsGrowthYOY,0.514
+QuarterlyRevenueGrowthYOY,0.426
+AnalystTargetPrice,1202.34
+AnalystRatingStrongBuy,6
+AnalystRatingBuy,18
+AnalystRatingHold,6
+AnalystRatingSell,1
+AnalystRatingStrongSell,0
+TrailingPE,37.88
+ForwardPE,25.71
+PriceToSalesRatioTTM,11.9
+PriceToBookRatio,29.23
+EVToRevenue,12.44
+EVToEBITDA,25.59
+Beta,0.504
+52WeekHigh,1132.06
+52WeekLow,620.46
+50DayMovingAverage,957.59
+200DayMovingAverage,908.99
+SharesOutstanding,893357000
+SharesFloat,890963000
+PercentInsiders,0.170
+PercentInstitutions,84.685
+DividendDate,2026-03-10
+ExDividendDate,2026-02-13

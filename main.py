@@ -40,6 +40,16 @@ if new_ticker != "":
     st.rerun()
 
 preds = readPredictions(selected_ticker)
+df = readCandle(selected_ticker)
+
+
+print(df.head(5))
+try:
+    ticker_current_price = df.iloc[0]['4. close']
+    st.markdown(f"<h2>${ticker_current_price}</h2>", unsafe_allow_html=True)
+except:
+    ticker_current_price = None
+    pass
 
 col1, col2 = st.columns([5,1])
 with col1:
@@ -74,7 +84,7 @@ with COL1:
     labels = ["Positive", "Negative", "Neutral"]
     sizes = [positives, negatives, neutrals]
 
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(8, 5))
     ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
     ax.axis('equal')
     # theme.apply_transforms()
@@ -92,11 +102,9 @@ with COL1:
 with COL2:
     st.subheader("Stock Price")
     try:
-        df = readCandle(selected_ticker)
-
         df['date'] = pd.to_datetime(df['date'])
 
-        fig = plt.figure(figsize=(10, 6))
+        fig = plt.figure(figsize=(8, 6))
         plt.plot(df['date'], df['1. open'])
         plt.gcf().autofmt_xdate() 
         st.pyplot(fig)
@@ -131,10 +139,13 @@ with st.expander("Overview", expanded=True):
                 "SharesFloat",
                 "PercentInstitutions",
                 "DividendData",
+                "DividendPerShare",
+                "DividendYield",
                 "ExDividendDate",
                 "RevenueTTM",
                 "GrossProfitTTM",
-                "DividendDate"
+                "DividendDate",
+                "ExDividendDate"
             ]
 
             analyst_tags = [
@@ -143,6 +154,17 @@ with st.expander("Overview", expanded=True):
                 "AnalystRatingHold",
                 "AnalystRatingSell",
                 "AnalystRatingStrongSell"
+            ]
+
+            percentage_tags = [
+                "ProfitMargin",
+                "OperatingMarginTTM",
+                "ReturnOnAssetsTTM",
+                "ReturnOnEquityTTM",
+                "QuarterlyEarningsGrowthYOY",
+                "QuarterlyRevenueGrowthYOY",
+                "PriceToSalesRatioTTM",
+                "PercentInsiders"
             ]
 
             st.markdown("<h3 style='text-align: center;'>   Analyst Ratings</h3>", unsafe_allow_html=True)
@@ -168,14 +190,24 @@ with st.expander("Overview", expanded=True):
                 for key, value in overview.items():
                     if key in desc_tags or key in analyst_tags:
                         continue
-
+                    elif key in percentage_tags:
+                        st.markdown(f"<h2 style='text-align: center;'>   {float(value)*100:.2f}%</h2>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='text-align: center;'>{key}</p>", unsafe_allow_html=True)
+                        continue
                     st.markdown(f"<h2 style='text-align: center;'>   {value}</h2>", unsafe_allow_html=True)
                     st.markdown(f"<p style='text-align: center;'>{key}</p>", unsafe_allow_html=True)
-        except:
+        except Exception as e:
+            print(e)
             st.write("Data not found.")
 
 with st.expander("Analysis", expanded=False):
-    pass
+    if ticker_current_price:
+        # print("current", ticker_current_price)
+        marginOS = (float(overview["AnalystTargetPrice"]) - float(ticker_current_price)) / float(ticker_current_price) * 100
+        st.markdown(f"<h2 style='text-align: center;'>   {marginOS:.2f}%</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center;'>Margin of Safety</p>", unsafe_allow_html=True)
+
+    
 
 def chatbot():
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
