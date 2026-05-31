@@ -3,6 +3,7 @@ showErrorDetails = "none"
 
 [theme]
 textColor = "#fff6dd"
+primaryColor = "#2BAF90"
 backgroundColor = "#000a13"
 secondaryBackgroundColor = "#001322"
 redColor = "#8C0027"

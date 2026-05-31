@@ -8,17 +8,22 @@ import plotly.graph_objects as go
 import plotly.express as px
 from dotenv import load_dotenv
 import pandas as pd
+from datetime import datetime, timedelta, timezone
 # from google import genai
 
 red = "#8C0027"
 orange = "#DD4111"
 yellow = "#F1A512"
 blue = "#A1D4B1" 
+purple = "#653993"
 green = "#2BAF90"
-white = '#FFFCC7'
+white = "#FFFCC7"
 
 load_dotenv()
 st.set_page_config(layout="wide")
+
+if "timeframe" not in st.session_state:
+    st.session_state.timeframe = "1M"
 
 tickers = readTicker()
 selected_ticker = st.sidebar.selectbox("Choose a quote:", tickers)
@@ -47,11 +52,11 @@ candles = readCandle(selected_ticker)
 def titleTile(df):
     col1, col2, col3 = st.columns([1,5,1])
     with col1:
-        st.markdown(f"<h1>${selected_ticker}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<h1 style='justify-self:center;'>${selected_ticker}</h1>", unsafe_allow_html=True)
     with col2:
         try:
             ticker_current_price = df.iloc[-1]['Close']
-            st.markdown(f"<h2>${ticker_current_price:.2f}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color:{white};'>${ticker_current_price:.2f}</h3>", unsafe_allow_html=True)
         except:
             ticker_current_price = None
             pass
@@ -94,26 +99,19 @@ def sentimentTile(preds):
             'Negative' : red,
             }
     )
-
-    fig.update_layout(
-        legend=dict(
-            orientation="v",
-            yanchor="auto",
-            y=1,
-            xanchor="right",
-            x=0.2
-        )
-    )
     
     st.plotly_chart(fig, width="stretch")
 
 def chartTile(df):
-    print(df.tail(5))
+    timeframe = st.session_state.timeframe
+    print(timeframe)
+
     st.subheader("Stock Price")
     try:
         df['Date'] = pd.to_datetime(df['Date'], utc=True)
         df['rolling200'] = df['Open'].rolling(200).mean()
         df['rolling50'] = df['Open'].rolling(50).mean()
+        df['rolling20'] = df['Open'].rolling(20).mean()
         
         # mask = (df['Date'] > '2025-01-01') & (df['Date'] <= '2026-05-04')
         # df = df.loc[mask]
@@ -133,7 +131,7 @@ def chartTile(df):
             y = df['rolling200'],
             mode = "lines",
             name = "200 SMA",
-            line = dict(color=orange, width=2)
+            line = dict(color=orange, width=1)
         ))
 
         fig.add_trace(go.Scatter(
@@ -141,16 +139,57 @@ def chartTile(df):
             y = df['rolling50'],
             mode = "lines",
             name = "50 SMA",
-            line = dict(color=yellow, width=2)
+            line = dict(color=yellow, width=1)
         ))
 
+        fig.add_trace(go.Scatter(
+            x = df["Date"],
+            y = df['rolling20'],
+            mode = "lines",
+            name = "20 SMA",
+            line = dict(color=purple, width=1)
+        ))
+
+        today = datetime.now(timezone.utc)
+        days = 31
+        
+        if timeframe == "1D":
+            days = 1
+        elif timeframe == "1W":
+            days = 7
+        elif timeframe == "1M":
+            days = 31
+        elif timeframe == "3M":
+            days = 180
+        elif timeframe == "1Y":
+            days = 365
+        else:
+            days = (today - df["Date"].min()).days 
+
+        delta = today - timedelta(days=days)
+        upper, lower = df[df["Date"] >= delta].max()["High"] * 1.02, df[df["Date"] >= delta].min()["Low"] * 0.98
+
         fig.update_layout(
+            xaxis=dict(
+                range=[delta, today],
+                type="date",
+            ),
             xaxis_rangeslider_visible=False,
-            margin=dict(l=10, r=10, t=10, b=10),
-            template="plotly_dark" # Matches dark themes nicely
+            yaxis=dict(
+                range=[lower, upper]
+            ),
+            legend=dict(
+                orientation="v",
+                yanchor="auto",
+                y=1,
+                xanchor="right",
+                x=-0.05
+            )
         )
 
         st.plotly_chart(fig, width="stretch")
+
+        st.pills("Timeframe", ["1D", "1W", "1M", "3M", "1Y", "ALL"], default="1M", key="timeframe")
 
     except Exception as e:
         st.write("Data not found.")
@@ -293,13 +332,19 @@ def optionsChainTile(ticker):
 
 ticker_current_price = titleTile(candles)
 
-COL1, COL2 = st.columns([2, 3])
+st.divider()
+
+COL1, COL2 = st.columns([3, 2])
 with COL1:
-    sentimentTile(preds)
-with COL2:
     chartTile(candles)
+with COL2:
+    sentimentTile(preds)
+
+st.divider()
 
 optionsChainTile(selected_ticker)
+
+st.divider()
 
 col1, col2 = st.columns(2)
 with col1:
