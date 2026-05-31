@@ -3,6 +3,8 @@
 .txt
 .env
 
+modules/__pycache__/
+
 daily/
 news/
 overviews/

@@ -7,7 +7,7 @@ import os, csv
 load_dotenv()
 AV_API_KEY = os.getenv("AV_API_KEY")
 
-def getCandle(ticker):
+def getCandles(ticker):
     try:
         ts = TimeSeries(key=AV_API_KEY, output_format='pandas')
 
@@ -18,7 +18,7 @@ def getCandle(ticker):
         print(e)
         return None
     
-def saveCandle(ticker, data):
+def saveCandles(ticker, data):
     data.to_csv(f"./daily/daily_{ticker}.csv", mode='w')
     print("Saving Candle: Done!")
     print()

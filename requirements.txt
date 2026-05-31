@@ -99,6 +99,7 @@ peewee==4.0.5
 pexpect==4.9.0
 pillow==12.2.0
 platformdirs==4.9.6
+plotly==6.7.0
 prompt_toolkit==3.0.52
 propcache==0.4.1
 protobuf==7.34.1

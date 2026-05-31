@@ -1,8 +1,10 @@
 import streamlit as st
-from modules.helper import readTicker, addTicker, readCandle, readPredictions, readOverview, readOptionsChain, readBBands
-from modules.alphaVantageAPI import getOverview, saveOverview, getBBands
+from modules.helper import readTicker, addTicker, readCandle, readPredictions, readOverview, readOptionsChain, readBBands, readFearAndGreed
+from modules.alphaVantageAPI import getOverview, saveOverview, getBBands, saveBBands
 from modules.yFinanceAPI import getNews, saveNews, getCandles, saveCandles, getOptionsChain, saveOptionsChain
 from modules.finBertting import getPrediction, savePrediction
+from modules.fearAndGreed import getFearAndGreed, saveFearAndGreed
+from modules.technicals import monteCarloSimul, getSharpeRatio
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px
@@ -30,11 +32,43 @@ if "timeframe" not in st.session_state:
     st.session_state.timeframe = "1M"
 
 tickers = readTicker()
+fng = readFearAndGreed()
+
+def fearAndGreedTile(fng):
+    st.sidebar.divider()
+    # st.sidebar.title("Fear & Greed Index")
+    # st.sidebar.write(f"{fng["fear_and_greed"]["score"]:.2f}")
+
+    fng_score = fng["fear_and_greed"]["score"]
+
+    fig = go.Figure(go.Indicator(
+        mode = "gauge+number",
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        value = fng_score,
+        title = {'text': "Fear & Greed Index"},
+        # delta = {'reference': 10},
+        gauge = {'axis': {'range': [None, 100]},
+                'steps' : [
+                    {'range': [0, 20], 'color': darkred},
+                    {'range': [20, 40], 'color': red},
+                    {'range': [40, 60], 'color': "grey"},
+                    {'range': [60, 80], 'color': green},
+                    {'range': [80, 100], 'color': darkgreen}
+                ],
+                'bar': {'color': white},
+            }
+        )
+    )
+
+    st.sidebar.plotly_chart(fig)
+
 selected_ticker = st.sidebar.selectbox("Choose a quote:", tickers)
 new_ticker = st.sidebar.text_input("Add a new ticker:")
+fearAndGreedTile(fng)
 
 if new_ticker != "":
     addTicker(new_ticker)
+
     news = getNews(new_ticker)
     saveNews(new_ticker, news)
 
@@ -88,6 +122,10 @@ def titleTile(df):
             if calls_df is not None and puts_df is not None:
                 saveOptionsChain(selected_ticker, calls_df, puts_df)
 
+            fng = getFearAndGreed()
+            if type(fng) == dict:
+                saveFearAndGreed(fng)
+
     return ticker_current_price
 
 def sentimentTile(preds):
@@ -130,8 +168,6 @@ def chartTile(ticker, df):
         df['rolling20'] = df['Close'].rolling(20).mean()
 
         bbands = readBBands(ticker)
-        if bbands is not None:
-            print(bbands)
 
         fig = go.Figure(data=[go.Candlestick(
             x = df['Date'],
@@ -168,39 +204,40 @@ def chartTile(ticker, df):
             line = dict(color=purple, width=1)
         ))
 
-        fig.add_trace(go.Scatter(
-            x=bbands["date"],
-            y=bbands['Real Middle Band'],
-            fill=None,
-            mode='lines',
-            line_color='rgba(255, 50, 50, 0.5)',
-            line=dict(width=2),
-            name='BB middle',
-            # visible='legendonly'
-        ))
+        if bbands is not None:
+            fig.add_trace(go.Scatter(
+                x=bbands["date"],
+                y=bbands['Real Middle Band'],
+                fill=None,
+                mode='lines',
+                line_color='rgba(255, 50, 50, 0.5)',
+                line=dict(width=2),
+                name='BB middle',
+                # visible='legendonly'
+            ))
 
-        fig.add_trace(go.Scatter(
-            x=bbands["date"],
-            y=bbands['Real Upper Band'],
-            fill=None,
-            mode='lines',
-            line_color='rgba(100, 100, 255, 0.5)',
-            line=dict(width=2),
-            name='BB upper',
-            # visible='legendonly'
-        ))
+            fig.add_trace(go.Scatter(
+                x=bbands["date"],
+                y=bbands['Real Upper Band'],
+                fill=None,
+                mode='lines',
+                line_color='rgba(100, 100, 255, 0.5)',
+                line=dict(width=2),
+                name='BB upper',
+                # visible='legendonly'
+            ))
 
-        fig.add_trace(go.Scatter(
-            x=bbands["date"],
-            y=bbands['Real Lower Band'],
-            opacity=0.3,
-            fill='tonexty',
-            line=dict(width=2),
-            name='BB lower',
-            line_color='rgba(100, 100, 255, 0.5)',
-            mode='lines', fillcolor='rgba(100, 100, 255, 0.1)',
-            # visible='legendonly'
-        ))
+            fig.add_trace(go.Scatter(
+                x=bbands["date"],
+                y=bbands['Real Lower Band'],
+                opacity=0.3,
+                fill='tonexty',
+                line=dict(width=2),
+                name='BB lower',
+                line_color='rgba(100, 100, 255, 0.5)',
+                mode='lines', fillcolor='rgba(100, 100, 255, 0.1)',
+                # visible='legendonly'
+            ))
 
         today = datetime.now(timezone.utc)
         days = 31
@@ -342,13 +379,19 @@ def overviewTile(ticker):
                 st.write("Data not found.")
 
 def analysisTile(ticker, overview):
-    with st.expander("Analysis", expanded=False):
+    with st.expander("Technicals", expanded=True):
         try:
             if ticker:
                 # print("current", ticker_current_price)
                 marginOS = (float(overview["AnalystTargetPrice"]) - float(ticker)) / float(ticker) * 100
                 st.markdown(f"<h2 style='text-align: center;'>   {marginOS:.2f}%</h2>", unsafe_allow_html=True)
                 st.markdown("<p style='text-align: center;'>Margin of Safety</p>", unsafe_allow_html=True)
+
+                sharpe_ratio = getSharpeRatio(candles)
+                st.markdown(f"<h2 style='text-align: center;'>   {sharpe_ratio:.2f}%</h2>", unsafe_allow_html=True)
+                st.markdown("<p style='text-align: center;'>Sharpe Ratio</p>", unsafe_allow_html=True)
+
+                technicalsTile(selected_ticker)
         except Exception as e:
             print(e)
             st.write("Data not found.")
@@ -410,6 +453,27 @@ def optionsChainTile(ticker):
         st.write("Data not found")
         print(e)
 
+def technicalsTile(ticker):
+    candles = readCandle(ticker)
+    overview = readOverview(ticker)
+
+    SMA50 = overview["50DayMovingAverage"]
+    MC_prices = monteCarloSimul(SMA50, 0.25, 0.5, n_sims=50000)
+
+    fig = px.histogram(data_frame=MC_prices, title="Monte Carlo Simulation", color_discrete_sequence=[purple])
+
+    fig.add_vline(
+        x = MC_prices.mean(), 
+        line_width = 4, 
+        line_dash = "dash", 
+        line_color = red,
+        annotation_text=f"${MC_prices.mean():.2f}",
+        annotation_position="top top"
+    )
+
+    st.plotly_chart(fig)
+
+
 ticker_current_price = titleTile(candles)
 
 st.divider()
@@ -431,7 +495,6 @@ with col1:
     overview = overviewTile(selected_ticker)
 with col2:
     analysisTile(ticker_current_price, overview)
-    
 
 
 

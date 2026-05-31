@@ -1,0 +1,26 @@
+import cloudscraper
+import json
+
+def getFearAndGreed():
+    try:
+        scraper = cloudscraper.create_scraper(
+            browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False}
+        )
+        
+        url = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata"
+        response = scraper.get(url)
+        json_data = response.json()
+        
+        # print(json_data)
+        return json_data # Dictionary
+        
+    except Exception as e:
+        print(f"Error fetching data: {e}")
+
+def saveFearAndGreed(data):
+    with open("./others/fear_and_greed.json", "w", encoding='utf-8') as infile:
+        json.dump(data, infile, ensure_ascii=False, indent=4)
+
+if __name__ == '__main__':
+    data = getFearAndGreed()
+    saveFearAndGreed(data)

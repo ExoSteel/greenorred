@@ -51,11 +51,21 @@ def readOptionsChain(ticker):
     return calls_df, puts_df
 
 def readBBands(ticker):
-    data = pd.read_csv(f"./bbands/bbands_{ticker}.csv")
+    try:
+        data = pd.read_csv(f"./bbands/bbands_{ticker}.csv")
+        return data
+    except Exception as e:
+        print(e)
+
+def readFearAndGreed():
+    data = pd.read_json("./others/fear_and_greed.json")
+    
     return data
 
 if __name__ == "__main__":
     # addTicker("AMZN")
     # readOverview("AAPL")
-    data = readCandle("AAPL")
-    print(data.iloc[0])
+    # data = readCandle("AAPL")
+    # print(data.iloc[0])
+
+    print(readFearAndGreed())

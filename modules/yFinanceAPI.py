@@ -20,11 +20,8 @@ def getCandles(ticker):
     return data
 
 def saveCandles(ticker, data):
-    # print(data)
     data.to_csv(f"./daily/daily_{ticker}.csv")
-    # with open(f"./daily/daily_{ticker}.txt", 'wt') as infile:
-    #     for article in data:
-    #         infile.write(f"{article['content']['title']}, {article['content']['summary']}\n")    
+    print("Saved: Candles")
 
 
 def getOptionsChain(ticker):
@@ -40,9 +37,9 @@ def getOptionsChain(ticker):
     calls_df = opt.calls
     puts_df = opt.puts
 
-    print(calls_df.head(5))
-    print()
-    print(puts_df.head())
+    # print(calls_df.head(5))
+    # print()
+    # print(puts_df.head())
     return calls_df, puts_df
 
     # # This returns columns like: strike, lastPrice, bid, ask, volume, openInterest, impliedVolatility
@@ -82,9 +79,34 @@ def saveOptionsChain(ticker, calls_df, puts_df):
     puts_df.to_csv(f"./puts/puts_{ticker}.csv")
     print("Saved: Calls & Puts")
 
+
+def getIncomeSTMT(ticker):
+    tick = yf.Ticker(ticker)
+    data = tick.get_income_stmt()
+
+    return data
+
+def saveIncomeSTMT(ticker, data):
+    data.to_csv(f"./statements/statements_{ticker}.csv")
+    print("Saved: Income Statement")
+
+
+def getBalanceSheet(ticker):
+    tick = yf.Ticker(ticker)
+    data = tick.get_balance_sheet()
+
+    return data
+
+def saveBalanceSheet(ticker, data):
+    data.to_csv(f"./balances/balance_{ticker}.csv")
+    print("Saved: Balance Sheet")
+
 if __name__ == '__main__':
     # df = getCandles("DZN")
     # print(df.to_csv("./daily/daily_DZN.csv"))
     # options = getOptionsChain("AAPL")
-    print(getCandles("AAPL"))
+    # print(getCandles("AAPL"))
     # pass
+
+    tick = yf.Ticker("AAPL")
+    print(tick.get_balance_sheet().index)
