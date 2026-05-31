@@ -45,6 +45,15 @@ def readOverview(ticker):
         
     return data
 
+def readOptionsChain(ticker):
+    calls_df = pd.read_csv(f"./calls/calls_{ticker}.csv")
+    puts_df = pd.read_csv(f"./puts/puts_{ticker}.csv")
+    return calls_df, puts_df
+
+def readBBands(ticker):
+    data = pd.read_csv(f"./bbands/bbands_{ticker}.csv")
+    return data
+
 if __name__ == "__main__":
     # addTicker("AMZN")
     # readOverview("AAPL")

@@ -1,23 +1,27 @@
 import streamlit as st
-from modules.helper import readTicker, addTicker, readCandle, readPredictions, readOverview
+from modules.helper import readTicker, addTicker, readCandle, readPredictions, readOverview, readOptionsChain, readBBands
 from modules.alphaVantageAPI import getOverview, saveOverview, getBBands
-from modules.yFinanceAPI import getNews, saveNews, getCandles, saveCandles, getOptionsChain
+from modules.yFinanceAPI import getNews, saveNews, getCandles, saveCandles, getOptionsChain, saveOptionsChain
 from modules.finBertting import getPrediction, savePrediction
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly.colors as pc
 from dotenv import load_dotenv
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 # from google import genai
 
 red = "#8C0027"
+darkred = "#380010"
 orange = "#DD4111"
 yellow = "#F1A512"
 blue = "#A1D4B1" 
 purple = "#653993"
 green = "#2BAF90"
+darkgreen = "#165a4a"
 white = "#FFFCC7"
+backgroundColor = "#000a13"
 
 load_dotenv()
 st.set_page_config(layout="wide")
@@ -40,6 +44,12 @@ if new_ticker != "":
     candles = getCandles(new_ticker)
     saveCandles(new_ticker, candles)
 
+    calls_df, puts_df = getOptionsChain(new_ticker)
+    saveOptionsChain(new_ticker, calls_df, puts_df)
+
+    bbands = getBBands(new_ticker)
+    saveBBands(new_ticker, bbands)
+
     new_ticker = ""
     selected_ticker = "AAPL"
     st.rerun()
@@ -50,25 +60,33 @@ candles = readCandle(selected_ticker)
 
 
 def titleTile(df):
-    col1, col2, col3 = st.columns([1,5,1])
+    col1, col2, col3 = st.columns([1,10,1], vertical_alignment="center")
     with col1:
-        st.markdown(f"<h1 style='justify-self:center;'>${selected_ticker}</h1>", unsafe_allow_html=True)
+        st.title(selected_ticker)
+        # st.markdown(f"<h1 style='justify-self:center;'>${selected_ticker}</h1>", unsafe_allow_html=True)
     with col2:
         try:
             ticker_current_price = df.iloc[-1]['Close']
-            st.markdown(f"<h3 style='color:{white};'>${ticker_current_price:.2f}</h3>", unsafe_allow_html=True)
+            st.subheader(f"${ticker_current_price:.2f}")
+            # st.markdown(f"<h3 style='color:{white};'>${ticker_current_price:.2f}</h3>", unsafe_allow_html=True)
         except:
             ticker_current_price = None
             pass
     with col3:
         if st.button("Refresh"):
             data = getCandles(selected_ticker)
-            saveCandles(selected_ticker, data)
+            if data is not None:
+                saveCandles(selected_ticker, data)
             # print(data)
 
             data, meta = getOverview(selected_ticker)
-            saveOverview(selected_ticker, data)
+            if data is not None and meta is not None:
+                saveOverview(selected_ticker, data)
             # print(data)
+
+            calls_df, puts_df = getOptionsChain(selected_ticker)
+            if calls_df is not None and puts_df is not None:
+                saveOptionsChain(selected_ticker, calls_df, puts_df)
 
     return ticker_current_price
 
@@ -102,19 +120,18 @@ def sentimentTile(preds):
     
     st.plotly_chart(fig, width="stretch")
 
-def chartTile(df):
+def chartTile(ticker, df):
     timeframe = st.session_state.timeframe
-    print(timeframe)
 
-    st.subheader("Stock Price")
     try:
         df['Date'] = pd.to_datetime(df['Date'], utc=True)
-        df['rolling200'] = df['Open'].rolling(200).mean()
-        df['rolling50'] = df['Open'].rolling(50).mean()
-        df['rolling20'] = df['Open'].rolling(20).mean()
-        
-        # mask = (df['Date'] > '2025-01-01') & (df['Date'] <= '2026-05-04')
-        # df = df.loc[mask]
+        df['rolling200'] = df['Close'].rolling(200).mean()
+        df['rolling50'] = df['Close'].rolling(50).mean()
+        df['rolling20'] = df['Close'].rolling(20).mean()
+
+        bbands = readBBands(ticker)
+        if bbands is not None:
+            print(bbands)
 
         fig = go.Figure(data=[go.Candlestick(
             x = df['Date'],
@@ -122,6 +139,7 @@ def chartTile(df):
             high = df['High'],
             low = df['Low'],
             close = df['Close'],
+            name = "Price", 
             increasing_line_color = green, 
             decreasing_line_color = red
         )])
@@ -150,6 +168,40 @@ def chartTile(df):
             line = dict(color=purple, width=1)
         ))
 
+        fig.add_trace(go.Scatter(
+            x=bbands["date"],
+            y=bbands['Real Middle Band'],
+            fill=None,
+            mode='lines',
+            line_color='rgba(255, 50, 50, 0.5)',
+            line=dict(width=2),
+            name='BB middle',
+            # visible='legendonly'
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=bbands["date"],
+            y=bbands['Real Upper Band'],
+            fill=None,
+            mode='lines',
+            line_color='rgba(100, 100, 255, 0.5)',
+            line=dict(width=2),
+            name='BB upper',
+            # visible='legendonly'
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=bbands["date"],
+            y=bbands['Real Lower Band'],
+            opacity=0.3,
+            fill='tonexty',
+            line=dict(width=2),
+            name='BB lower',
+            line_color='rgba(100, 100, 255, 0.5)',
+            mode='lines', fillcolor='rgba(100, 100, 255, 0.1)',
+            # visible='legendonly'
+        ))
+
         today = datetime.now(timezone.utc)
         days = 31
         
@@ -167,12 +219,15 @@ def chartTile(df):
             days = (today - df["Date"].min()).days 
 
         delta = today - timedelta(days=days)
-        upper, lower = df[df["Date"] >= delta].max()["High"] * 1.02, df[df["Date"] >= delta].min()["Low"] * 0.98
+        upper, lower = df[df["Date"] >= delta].max()["High"] * 1.05, df[df["Date"] >= delta].min()["Low"] * 0.95
 
         fig.update_layout(
             xaxis=dict(
                 range=[delta, today],
                 type="date",
+                rangebreaks=[
+                    dict(bounds=["sat", "mon"]) # Hides everything between Saturday morning and Monday morning
+                ]
             ),
             xaxis_rangeslider_visible=False,
             yaxis=dict(
@@ -299,36 +354,61 @@ def analysisTile(ticker, overview):
             st.write("Data not found.")
 
 def optionsChainTile(ticker):
-    calls_df, puts_df = getOptionsChain(ticker)
     st.title("Options Chain")
+    try:
+        calls_df, puts_df = readOptionsChain(ticker)
+        options_df = calls_df.merge(puts_df, on="strike")
 
-    options_df = calls_df.merge(puts_df, on="strike")
+        columns = pd.MultiIndex.from_tuples([
+            ("CALLS", "Volume"),
+            ("CALLS", "Last Price"),
+            ("CALLS", "Bid"),
+            ("CALLS", "Change"),
+            ("STRIKE", ""),
+            ("PUTS", "Change"),
+            ("PUTS", "Bid"),
+            ("PUTS", "Last Price"),
+            ("PUTS", "Volume")
+        ])
 
-    columns = pd.MultiIndex.from_tuples([
-        ("CALLS", "Volume"),
-        ("CALLS", "Last Price"),
-        ("CALLS", "Bid"),
-        ("STRIKE", ""),
-        ("PUTS", "Bid"),
-        ("PUTS", "Last Price"),
-        ("PUTS", "Volume")
-    ])
+        headers = [
+            "volume_x",
+            "lastPrice_x",
+            "bid_x",
+            "change_x",
+            "strike",
+            "change_y",
+            "volume_y",
+            "lastPrice_y",
+            "bid_y",
+        ]
+        
+        custom_scale = [darkred, backgroundColor, darkgreen]
+        
+        min_strike = options_df['strike'].min()
+        max_strike = options_df['strike'].max()
+        strike_range = max_strike - min_strike if max_strike != min_strike else 1
 
-    headers = [
-        "volume_x",
-        "lastPrice_x",
-        "bid_x",
-        "strike",
-        "volume_y",
-        "lastPrice_y",
-        "bid_y",
-    ]
+        colorscale = pc.sample_colorscale(custom_scale, options_df.shape[0])
 
-    options_df_trunc = options_df[headers]
-    options_df_trunc.columns = columns
+        options_df_trunc = options_df[headers]
+        options_df_trunc.columns = columns
+        options_df_trunc = options_df_trunc.fillna(0)
 
-    options_df_trunc = options_df_trunc.fillna(0)
-    st.dataframe(options_df_trunc, hide_index=True, width="stretch")
+        def apply_row_gradient(x):
+            return [f"background-color: {colorscale[i]}; color: white;" for i in range(len(x))]
+
+        options_df_trunc = options_df_trunc.style.apply(
+            apply_row_gradient, 
+            subset=["STRIKE"],
+            axis=0,
+        )
+
+        st.dataframe(options_df_trunc, hide_index=True, width="stretch")
+
+    except Exception as e:
+        st.write("Data not found")
+        print(e)
 
 ticker_current_price = titleTile(candles)
 
@@ -336,7 +416,7 @@ st.divider()
 
 COL1, COL2 = st.columns([3, 2])
 with COL1:
-    chartTile(candles)
+    chartTile(selected_ticker, candles)
 with COL2:
     sentimentTile(preds)
 

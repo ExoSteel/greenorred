@@ -8,11 +8,15 @@ load_dotenv()
 AV_API_KEY = os.getenv("AV_API_KEY")
 
 def getCandle(ticker):
-    ts = TimeSeries(key=AV_API_KEY, output_format='pandas')
+    try:
+        ts = TimeSeries(key=AV_API_KEY, output_format='pandas')
 
-    data, meta = ts.get_daily(symbol=ticker, outputsize='compact')
+        data, meta = ts.get_daily(symbol=ticker, outputsize='compact')
 
-    return data, meta
+        return data, meta
+    except Exception as e:
+        print(e)
+        return None
     
 def saveCandle(ticker, data):
     data.to_csv(f"./daily/daily_{ticker}.csv", mode='w')
@@ -21,11 +25,15 @@ def saveCandle(ticker, data):
 
 
 def getOverview(ticker):
-    fd = FundamentalData(key='AV_API_KEY')
-    data, meta = fd.get_company_overview(symbol=ticker)
-    print("Getting Overview: Done!")
+    try:
+        fd = FundamentalData(key='AV_API_KEY')
+        data, meta = fd.get_company_overview(symbol=ticker)
+        print("Getting Overview: Done!")
 
-    return data, meta
+        return data, meta
+    except Exception as e:
+        print(e)
+        return None, None
 
 def saveOverview(ticker, data):
     with open(f"./overviews/overview_{ticker}.csv", "wt") as outfile:
@@ -38,11 +46,20 @@ def saveOverview(ticker, data):
 
 
 def getBBands(ticker):
-    ti = TechIndicators(key='AV_API_KEY', output_format='pandas')
-    data, meta_data = ti.get_bbands(symbol=ticker, interval='60min', time_period=60)
-    return data
+    try:
+        ti = TechIndicators(key='AV_API_KEY', output_format='pandas')
+        data, meta_data = ti.get_bbands(symbol=ticker, interval='60min', time_period=60)
+        return data
+    except Exception as e:
+        print(e)
+        return None
 
 def saveBBands(ticker, data):
     data.to_csv(f"./bbands/bbands_{ticker}.csv")
     print("done!")
     print()
+
+if __name__ == "__main__":
+    bbands = getBBands("AAPL")
+    print(bbands)
+    saveBBands("AAPL", bbands)

@@ -40,6 +40,9 @@ def getOptionsChain(ticker):
     calls_df = opt.calls
     puts_df = opt.puts
 
+    print(calls_df.head(5))
+    print()
+    print(puts_df.head())
     return calls_df, puts_df
 
     # # This returns columns like: strike, lastPrice, bid, ask, volume, openInterest, impliedVolatility
@@ -75,7 +78,9 @@ def getOptionsChain(ticker):
     # fig.show()
 
 def saveOptionsChain(ticker, calls_df, puts_df):
-    pass
+    calls_df.to_csv(f"./calls/calls_{ticker}.csv")
+    puts_df.to_csv(f"./puts/puts_{ticker}.csv")
+    print("Saved: Calls & Puts")
 
 if __name__ == '__main__':
     # df = getCandles("DZN")

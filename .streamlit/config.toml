@@ -3,8 +3,10 @@ showErrorDetails = "none"
 
 [theme]
 textColor = "#fff6dd"
+dataframeBorderColor = "#555555"
 primaryColor = "#2BAF90"
 backgroundColor = "#000a13"
+dataframeHeaderBackgroundColor = "#000a13"
 secondaryBackgroundColor = "#001322"
 redColor = "#8C0027"
 orangeColor = "#DD4111"
