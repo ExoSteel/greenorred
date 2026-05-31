@@ -1,7 +1,12 @@
+import warnings
+
+# Filter out the specific path warning from transformers
+warnings.filterwarnings("ignore", message=".*Accessing `__path__` from.*")
+
 import streamlit as st
 from modules.helper import readTicker, addTicker, readCandle, readPredictions, readOverview
-from modules.alphaVantageAPI import getCandle, saveCandle, getOverview, saveOverview, getBBands
-from modules.yFinanceAPI import getNews, saveNews
+from modules.alphaVantageAPI import getOverview, saveOverview, getBBands
+from modules.yFinanceAPI import getNews, saveNews, getCandles, saveCandles
 from modules.finBertting import getPrediction, savePrediction
 import matplotlib.pyplot as plt
 from aquarel import load_theme
@@ -35,18 +40,19 @@ if new_ticker != "":
     prediction = getPrediction(new_ticker)
     savePrediction(new_ticker, prediction)
 
+    df = getCandles(new_ticker)
+    saveCandles(new_ticker, df)
+
     new_ticker = ""
-    selected_ticker = "AMZN"
+    selected_ticker = "AAPL"
     st.rerun()
 
 preds = readPredictions(selected_ticker)
 df = readCandle(selected_ticker)
 
-
-print(df.head(5))
 try:
-    ticker_current_price = df.iloc[0]['4. close']
-    st.markdown(f"<h2>${ticker_current_price}</h2>", unsafe_allow_html=True)
+    ticker_current_price = df.iloc[-1]['Close']
+    st.markdown(f"<h2>${ticker_current_price:.2f}</h2>", unsafe_allow_html=True)
 except:
     ticker_current_price = None
     pass
@@ -56,15 +62,17 @@ with col1:
     st.title(selected_ticker)
 with col2:
     if st.button("Refresh"):
-        data, meta = getCandle(selected_ticker)
-        saveCandle(selected_ticker, data)
-        print(data)
+        data = getCandles(selected_ticker)
+        saveCandles(selected_ticker, data)
+        # print("bunner")
+        # print(data.head(5))
+        # print(data.dtypes)
 
-        data, meta = getOverview(selected_ticker)
-        saveOverview(selected_ticker, data)
-        print(data)
+        # data = getOverview(selected_ticker)
+        # saveOverview(selected_ticker, data)
+        # print(data)
 
-
+print("What")
 COL1, COL2 = st.columns(2)
 
 with COL1:
@@ -102,14 +110,27 @@ with COL1:
 with COL2:
     st.subheader("Stock Price")
     try:
-        df['date'] = pd.to_datetime(df['date'])
+        df['Date'] = pd.to_datetime(df['Date'])
 
         fig = plt.figure(figsize=(8, 6))
-        plt.plot(df['date'], df['1. open'])
+        
+
+        df['rolling200'] = df['Open'].rolling(200).mean()
+        df['rolling50'] = df['Open'].rolling(50).mean()
+
+        mask = (df['Date'] > '2025-01-01') & (df['Date'] <= '2026-05-04')
+        df = df.loc[mask]
+
+        plt.plot(df['Date'], df['Open'], label='Open Price')
+        plt.plot(df['Date'], df['rolling200'], label="Rolling 200")
+        plt.plot(df['Date'], df['rolling50'], label='Rolling 50')
+
+        plt.legend()
         plt.gcf().autofmt_xdate() 
         st.pyplot(fig)
-    except:
+    except Exception as e:
         st.write("Data not found.")
+        print(e)
 
 with st.expander("Overview", expanded=True):
 
@@ -201,12 +222,15 @@ with st.expander("Overview", expanded=True):
             st.write("Data not found.")
 
 with st.expander("Analysis", expanded=False):
-    if ticker_current_price:
-        # print("current", ticker_current_price)
-        marginOS = (float(overview["AnalystTargetPrice"]) - float(ticker_current_price)) / float(ticker_current_price) * 100
-        st.markdown(f"<h2 style='text-align: center;'>   {marginOS:.2f}%</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center;'>Margin of Safety</p>", unsafe_allow_html=True)
-
+    try:
+        if ticker_current_price:
+            # print("current", ticker_current_price)
+            marginOS = (float(overview["AnalystTargetPrice"]) - float(ticker_current_price)) / float(ticker_current_price) * 100
+            st.markdown(f"<h2 style='text-align: center;'>   {marginOS:.2f}%</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center;'>Margin of Safety</p>", unsafe_allow_html=True)
+    except Exception as e:
+        print(e)
+        st.write("Data not found.")
     
 
 def chatbot():

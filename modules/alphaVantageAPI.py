@@ -15,7 +15,7 @@ def getCandle(ticker):
     return data, meta
     
 def saveCandle(ticker, data):
-    data.to_csv(f"./daily/daily_{ticker}.csv")
+    data.to_csv(f"./daily/daily_{ticker}.csv", mode='w')
     print("done!")
     print()
 
