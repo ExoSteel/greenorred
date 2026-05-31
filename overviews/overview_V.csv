@@ -1,0 +1,55 @@
+Symbol,V
+AssetType,Common Stock
+Name,Visa Inc. Class A
+Description,"Visa Inc. is an American multinational financial services corporation headquartered in Foster City, California, United States. It facilitates electronic funds transfers throughout the world, most commonly through Visa-branded credit cards, debit cards and prepaid cards. Visa is one of the world's most valuable companies."
+CIK,1403161
+Exchange,NYSE
+Currency,USD
+Country,USA
+Sector,FINANCIAL SERVICES
+Industry,CREDIT SERVICES
+Address,"P.O. BOX 8999, SAN FRANCISCO, CA, UNITED STATES, 94128-8999"
+OfficialSite,https://www.visa.com
+FiscalYearEnd,September
+LatestQuarter,2026-03-31
+MarketCapitalization,627271139000
+EBITDA,30395001000
+PERatio,28.73
+PEGRatio,1.728
+BookValue,20.03
+DividendPerShare,1.26
+DividendYield,0.0038
+EPS,11.48
+RevenuePerShareTTM,22.43
+ProfitMargin,0.517
+OperatingMarginTTM,0.673
+ReturnOnAssetsTTM,0.194
+ReturnOnEquityTTM,0.604
+RevenueTTM,43027001000
+GrossProfitTTM,41941000000
+DilutedEPSTTM,11.48
+QuarterlyEarningsGrowthYOY,0.267
+QuarterlyRevenueGrowthYOY,0.171
+AnalystTargetPrice,395.71
+AnalystRatingStrongBuy,7
+AnalystRatingBuy,29
+AnalystRatingHold,3
+AnalystRatingSell,0
+AnalystRatingStrongSell,0
+TrailingPE,28.73
+ForwardPE,25.38
+PriceToSalesRatioTTM,14.58
+PriceToBookRatio,17.85
+EVToRevenue,14.82
+EVToEBITDA,22.48
+Beta,0.799
+52WeekHigh,373.33
+52WeekLow,293.89
+50DayMovingAverage,310.46
+200DayMovingAverage,332.82
+SharesOutstanding,1659710000
+SharesFloat,1637312000
+PercentInsiders,0.593
+PercentInstitutions,91.762
+DividendDate,2026-03-02
+ExDividendDate,2026-05-12
