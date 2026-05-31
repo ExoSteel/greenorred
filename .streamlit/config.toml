@@ -1,0 +1,12 @@
+[client]
+showErrorDetails = "none"
+
+[theme]
+textColor = "#fff6dd"
+backgroundColor = "#000a13"
+secondaryBackgroundColor = "#001322"
+redColor = "#8C0027"
+orangeColor = "#DD4111"
+yellowColor = "#F1A512"
+blueColor = "#A1D4B1" 
+greenColor = "#2BAF90"

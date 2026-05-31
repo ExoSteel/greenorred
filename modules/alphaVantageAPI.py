@@ -16,13 +16,14 @@ def getCandle(ticker):
     
 def saveCandle(ticker, data):
     data.to_csv(f"./daily/daily_{ticker}.csv", mode='w')
-    print("done!")
+    print("Saving Candle: Done!")
     print()
 
 
 def getOverview(ticker):
     fd = FundamentalData(key='AV_API_KEY')
     data, meta = fd.get_company_overview(symbol=ticker)
+    print("Getting Overview: Done!")
 
     return data, meta
 
@@ -32,7 +33,7 @@ def saveOverview(ticker, data):
         for key, value in data.items():
             writer.writerow([key, value])
     
-    print("done!")
+    print("Saving Overview: Done!")
     print()
 
 

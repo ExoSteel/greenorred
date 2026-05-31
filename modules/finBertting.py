@@ -1,6 +1,16 @@
+import os
+import sys
+import warnings
+
+old_stderr = sys.stderr
+sys.stderr = open(os.devnull, 'w')
+
 import json
 from transformers import BertTokenizer, BertForSequenceClassification
 from transformers import pipeline
+
+sys.stderr = old_stderr
+
 from modules.helper import readNews
 
 def getPrediction(ticker):
