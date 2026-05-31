@@ -2,3 +2,8 @@
 .vscode/
 .txt
 .env
+
+daily/
+news/
+overviews/
+predictions/
