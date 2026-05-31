@@ -43,7 +43,7 @@ preds = readPredictions(selected_ticker)
 df = readCandle(selected_ticker)
 
 
-print(df.head(5))
+# print(df.head(5))
 try:
     ticker_current_price = df.iloc[0]['4. close']
     st.markdown(f"<h2>${ticker_current_price}</h2>", unsafe_allow_html=True)
@@ -58,11 +58,11 @@ with col2:
     if st.button("Refresh"):
         data, meta = getCandle(selected_ticker)
         saveCandle(selected_ticker, data)
-        print(data)
+        # print(data)
 
         data, meta = getOverview(selected_ticker)
         saveOverview(selected_ticker, data)
-        print(data)
+        # print(data)
 
 
 COL1, COL2 = st.columns(2)
