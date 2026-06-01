@@ -37,8 +37,11 @@ if "timeframe" not in st.session_state:
     st.session_state.timeframe = "1M"
 
 def marketSentimentTile():
-    fng = readFearAndGreed()
-    
+    try:
+        fng = readFearAndGreed()
+    except:
+        fng = getFearAndGreed()
+        saveFearAndGreed(fng)
     # st.sidebar.title("Fear & Greed Index")
     # st.sidebar.write(f"{fng["fear_and_greed"]["score"]:.2f}")
 
