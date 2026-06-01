@@ -19,7 +19,7 @@ def addTicker(ticker):
     with open("./tickers.txt", 'at') as outfile:
         outfile.write("\n" + ticker)
 
-def readCandle(ticker):
+def readCandles(ticker):
     data = pd.read_csv(f"./daily/daily_{ticker}.csv")
     return data
 

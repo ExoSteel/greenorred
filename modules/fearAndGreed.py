@@ -18,8 +18,8 @@ def getFearAndGreed():
         print(f"Error fetching data: {e}")
 
 def saveFearAndGreed(data):
-    with open("./others/fear_and_greed.json", "w", encoding='utf-8') as infile:
-        json.dump(data, infile, ensure_ascii=False, indent=4)
+    with open("./others/fear_and_greed.json", "wt", encoding='utf-8') as outfile:
+        json.dump(data, outfile, ensure_ascii=False, indent=4)
 
 if __name__ == '__main__':
     data = getFearAndGreed()

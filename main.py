@@ -1,10 +1,11 @@
 import streamlit as st
-from modules.helper import readTicker, addTicker, readCandle, readPredictions, readOverview, readOptionsChain, readBBands, readFearAndGreed
-from modules.alphaVantageAPI import getOverview, saveOverview, getBBands, saveBBands
-from modules.yFinanceAPI import getNews, saveNews, getCandles, saveCandles, getOptionsChain, saveOptionsChain
+from modules.helper import readTicker, addTicker, readCandles, readPredictions, readOverview, readOptionsChain, readBBands, readFearAndGreed
+from modules.alphaVantageAPI import getOverview, saveOverview
+from modules.yFinanceAPI import getCandles, saveCandles, getOptionsChain, saveOptionsChain
+from modules.finnhubAPI import getNews, saveNews
 from modules.finBertting import getPrediction, savePrediction
 from modules.fearAndGreed import getFearAndGreed, saveFearAndGreed
-from modules.technicals import monteCarloSimul, getSharpeRatio
+from modules.technicals import monteCarloSimul, getResistanceLevel, getSharpeRatio, getBBands, calculateOIPCR
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px
@@ -22,85 +23,124 @@ blue = "#A1D4B1"
 purple = "#653993"
 green = "#2BAF90"
 darkgreen = "#165a4a"
-white = "#FFFCC7"
+white = "#E7DCC9"
 backgroundColor = "#000a13"
+tickers = readTicker()
 
 load_dotenv()
-st.set_page_config(layout="wide")
+st.set_page_config(
+    layout="wide",
+    page_title="Main Page"
+)
 
 if "timeframe" not in st.session_state:
     st.session_state.timeframe = "1M"
 
-tickers = readTicker()
-fng = readFearAndGreed()
-
-def fearAndGreedTile(fng):
-    st.sidebar.divider()
+def marketSentimentTile():
+    fng = readFearAndGreed()
+    
     # st.sidebar.title("Fear & Greed Index")
     # st.sidebar.write(f"{fng["fear_and_greed"]["score"]:.2f}")
 
     fng_score = fng["fear_and_greed"]["score"]
+    fng_rating = fng["fear_and_greed"]["rating"]
+    fng_rating_upper = {
+        "extreme greed": "Extreme Greed",
+        "greed": "Greed",
+        "neutral": "Neutral",
+        "fear": "Fear",
+        "extreme fear": "Extreme Fear"
+    }
+    fng_rating = fng_rating_upper[fng_rating]
+
+    fng_rating_color = {
+        "Extreme Greed": darkgreen,
+        "Greed": green,
+        "Neutral": white,
+        "Fear": red,
+        "Extreme Fear": darkred
+    }
 
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
-        domain = {'x': [0, 1], 'y': [0, 1]},
+        domain = {'x': [0, 1], 'y': [0.1, 0.6]},
         value = fng_score,
-        title = {'text': "Fear & Greed Index"},
-        # delta = {'reference': 10},
-        gauge = {'axis': {'range': [None, 100]},
-                'steps' : [
-                    {'range': [0, 20], 'color': darkred},
-                    {'range': [20, 40], 'color': red},
-                    {'range': [40, 60], 'color': "grey"},
-                    {'range': [60, 80], 'color': green},
-                    {'range': [80, 100], 'color': darkgreen}
-                ],
-                'bar': {'color': white},
+        title = {
+            'text': "Fear & Greed Index"
+            },
+        gauge = {
+            'axis': {'range': [None, 100]},
+            'steps' : [
+                {'range': [0, 20], 'color': darkred},
+                {'range': [20, 40], 'color': red},
+                {'range': [40, 60], 'color': yellow},
+                {'range': [60, 80], 'color': green},
+                {'range': [80, 100], 'color': darkgreen}
+            ],
+            'bar': {'color': white},
             }
-        )
+        ),
+    )
+
+    fig.update_layout(
+        height=300,
+        margin=dict(t=1, b=1, l=1, r=1),
+        font = {'color': fng_rating_color[fng_rating]}
     )
 
     st.sidebar.plotly_chart(fig)
 
-selected_ticker = st.sidebar.selectbox("Choose a quote:", tickers)
-new_ticker = st.sidebar.text_input("Add a new ticker:")
-fearAndGreedTile(fng)
+    vix = fng["market_volatility_vix"]["data"]
+    vix50 = fng["market_volatility_vix_50"]["data"]
+    
+    vix_df = pd.DataFrame.from_dict(vix, orient="columns")
+    vix_df['date'] = pd.to_datetime(vix_df['x'], unit='ms')
 
-if new_ticker != "":
-    addTicker(new_ticker)
+    vix50_df = pd.DataFrame.from_dict(vix50, orient="columns")
+    vix50_df['date'] = pd.to_datetime(vix50_df['x'], unit='ms')
 
-    news = getNews(new_ticker)
-    saveNews(new_ticker, news)
+    fig = go.Figure(data=[
+            go.Scatter(
+                x = vix_df["date"],
+                y = vix_df["y"],
+                mode = "lines",
+                name = "VIX",
+                line = dict(color=blue, width=1)
+            )
+        ]
+    )
 
-    prediction = getPrediction(new_ticker)
-    savePrediction(new_ticker, prediction)
+    fig.add_trace(go.Scatter(
+            x = vix50_df["date"],
+            y = vix50_df["y"],
+            mode = "lines",
+            name = "VIX SMA50",
+            line = dict(color=yellow, width=1)
+        )
+    )
 
-    candles = getCandles(new_ticker)
-    saveCandles(new_ticker, candles)
+    fig.update_layout(
+            legend=dict(
+                orientation="v",
+                yanchor="auto",
+                y=1,
+                xanchor="right",
+                x=0.2
+            )
+        )
 
-    calls_df, puts_df = getOptionsChain(new_ticker)
-    saveOptionsChain(new_ticker, calls_df, puts_df)
+    st.sidebar.plotly_chart(fig)
 
-    bbands = getBBands(new_ticker)
-    saveBBands(new_ticker, bbands)
+def titleTile(ticker):
+    candles = readCandles(ticker)
 
-    new_ticker = ""
-    selected_ticker = "AAPL"
-    st.rerun()
-
-preds = readPredictions(selected_ticker)
-candles = readCandle(selected_ticker)
-# print(df.head(5))
-
-
-def titleTile(df):
-    col1, col2, col3 = st.columns([1,10,1], vertical_alignment="center")
+    col1, col2, col3 = st.columns([1,7,1], vertical_alignment="center")
     with col1:
-        st.title(selected_ticker)
+        st.title(ticker)
         # st.markdown(f"<h1 style='justify-self:center;'>${selected_ticker}</h1>", unsafe_allow_html=True)
     with col2:
         try:
-            ticker_current_price = df.iloc[-1]['Close']
+            ticker_current_price = candles.iloc[-1]['Close']
             st.subheader(f"${ticker_current_price:.2f}")
             # st.markdown(f"<h3 style='color:{white};'>${ticker_current_price:.2f}</h3>", unsafe_allow_html=True)
         except:
@@ -108,28 +148,36 @@ def titleTile(df):
             pass
     with col3:
         if st.button("Refresh"):
-            data = getCandles(selected_ticker)
+            data = getNews(ticker)
             if data is not None:
-                saveCandles(selected_ticker, data)
+                saveNews(ticker, data)
+
+            data = getPrediction(ticker)
+            if data is not None:
+                savePrediction(ticker, data)
+
+            data = getCandles(ticker)
+            if data is not None:
+                saveCandles(ticker, data)
             # print(data)
 
-            data, meta = getOverview(selected_ticker)
+            data, meta = getOverview(ticker)
             if data is not None and meta is not None:
-                saveOverview(selected_ticker, data)
+                saveOverview(ticker, data)
             # print(data)
 
-            calls_df, puts_df = getOptionsChain(selected_ticker)
+            calls_df, puts_df = getOptionsChain(ticker)
             if calls_df is not None and puts_df is not None:
-                saveOptionsChain(selected_ticker, calls_df, puts_df)
+                saveOptionsChain(ticker, calls_df, puts_df)
 
             fng = getFearAndGreed()
             if type(fng) == dict:
                 saveFearAndGreed(fng)
 
-    return ticker_current_price
-
-def sentimentTile(preds):
+def sentimentTile(ticker):
     st.subheader("General Sentiment")
+
+    preds = readPredictions(ticker)
 
     positives = 0
     negatives = 0
@@ -158,27 +206,39 @@ def sentimentTile(preds):
     
     st.plotly_chart(fig, width="stretch")
 
-def chartTile(ticker, df):
+def chartTile(ticker):
     timeframe = st.session_state.timeframe
 
     try:
+        df = readCandles(ticker)
+
         df['Date'] = pd.to_datetime(df['Date'], utc=True)
-        df['rolling200'] = df['Close'].rolling(200).mean()
-        df['rolling50'] = df['Close'].rolling(50).mean()
         df['rolling20'] = df['Close'].rolling(20).mean()
+        df['rolling50'] = df['Close'].rolling(50).mean()
+        df['rolling200'] = df['Close'].rolling(200).mean()
 
-        bbands = readBBands(ticker)
+        fig = go.Figure(data=[
+            go.Candlestick(
+                x = df['Date'],
+                open = df['Open'],
+                high = df['High'],
+                low = df['Low'],
+                close = df['Close'],
+                name = "Candles", 
+                increasing_line_color = green, 
+                decreasing_line_color = red,
+                visible='legendonly'
+                )
+            ]
+        )
 
-        fig = go.Figure(data=[go.Candlestick(
-            x = df['Date'],
-            open = df['Open'],
-            high = df['High'],
-            low = df['Low'],
-            close = df['Close'],
-            name = "Price", 
-            increasing_line_color = green, 
-            decreasing_line_color = red
-        )])
+        fig.add_trace(go.Scatter(
+            x = df["Date"],
+            y = df["Close"],
+            name = "Close",
+            line = dict(color=green, width=2)
+            )
+        )
 
         fig.add_trace(go.Scatter(
             x = df["Date"],
@@ -186,7 +246,8 @@ def chartTile(ticker, df):
             mode = "lines",
             name = "200 SMA",
             line = dict(color=orange, width=1)
-        ))
+            )
+        )
 
         fig.add_trace(go.Scatter(
             x = df["Date"],
@@ -194,7 +255,8 @@ def chartTile(ticker, df):
             mode = "lines",
             name = "50 SMA",
             line = dict(color=yellow, width=1)
-        ))
+            )
+        )
 
         fig.add_trace(go.Scatter(
             x = df["Date"],
@@ -202,42 +264,58 @@ def chartTile(ticker, df):
             mode = "lines",
             name = "20 SMA",
             line = dict(color=purple, width=1)
+            )
+        )
+
+        # R1, R2 = getResistanceLevel(df)
+
+        # fig.add_hline(
+        #     y = R1,
+        #     line_color = 'rgba(255, 0, 0, 0.75)',
+        #     name = "Resist 1"
+        # )
+
+        # fig.add_hline(
+        #     y = R2,
+        #     line_color = 'rgba(255, 0, 0, 0.75)',
+        #     name = "Resist 2"
+        # )
+        
+        df = getBBands(df)
+
+        fig.add_trace(go.Scatter(
+            x=df["Date"],
+            y=df['Real Middle Band'],
+            fill=None,
+            mode='lines',
+            line_color='rgba(255, 50, 50, 0.5)',
+            line=dict(width=2),
+            name='BB middle',
+            # visible='legendonly'
         ))
 
-        if bbands is not None:
-            fig.add_trace(go.Scatter(
-                x=bbands["date"],
-                y=bbands['Real Middle Band'],
-                fill=None,
-                mode='lines',
-                line_color='rgba(255, 50, 50, 0.5)',
-                line=dict(width=2),
-                name='BB middle',
-                # visible='legendonly'
-            ))
+        fig.add_trace(go.Scatter(
+            x=df["Date"],
+            y=df['Real Upper Band'],
+            fill=None,
+            mode='lines',
+            line_color='rgba(100, 100, 255, 0.5)',
+            line=dict(width=2),
+            name='BB upper',
+            # visible='legendonly'
+        ))
 
-            fig.add_trace(go.Scatter(
-                x=bbands["date"],
-                y=bbands['Real Upper Band'],
-                fill=None,
-                mode='lines',
-                line_color='rgba(100, 100, 255, 0.5)',
-                line=dict(width=2),
-                name='BB upper',
-                # visible='legendonly'
-            ))
-
-            fig.add_trace(go.Scatter(
-                x=bbands["date"],
-                y=bbands['Real Lower Band'],
-                opacity=0.3,
-                fill='tonexty',
-                line=dict(width=2),
-                name='BB lower',
-                line_color='rgba(100, 100, 255, 0.5)',
-                mode='lines', fillcolor='rgba(100, 100, 255, 0.1)',
-                # visible='legendonly'
-            ))
+        fig.add_trace(go.Scatter(
+            x=df["Date"],
+            y=df['Real Lower Band'],
+            opacity=0.3,
+            fill='tonexty',
+            line=dict(width=2),
+            name='BB lower',
+            line_color='rgba(100, 100, 255, 0.5)',
+            mode='lines', fillcolor='rgba(100, 100, 255, 0.1)',
+            # visible='legendonly'
+        ))
 
         today = datetime.now(timezone.utc)
         days = 31
@@ -285,7 +363,114 @@ def chartTile(ticker, df):
 
     except Exception as e:
         st.write("Data not found.")
-        print(e)
+        print(
+            e,
+            "\n", type(e).__name__,
+            "\n Filename:", __file__,         
+            "\n Line:", e.__traceback__.tb_lineno
+        )
+
+def optionsChainTile(ticker):
+    st.title("Options Chain")
+    try:
+        calls_df, puts_df = readOptionsChain(ticker)
+        options_df = calls_df.merge(puts_df, on="strike")
+
+        columns = pd.MultiIndex.from_tuples([
+            ("CALLS", "Implied Volatility"),
+            ("CALLS", "Open Interest"),
+            ("CALLS", "Volume"),
+            ("CALLS", "Last Price"),
+            ("CALLS", "Bid"),
+            ("CALLS", "Change"),
+            ("STRIKE", ""),
+            ("PUTS", "Change"),
+            ("PUTS", "Bid"),
+            ("PUTS", "Last Price"),
+            ("PUTS", "Volume"),
+            ("PUTS", "Open Interest"),
+            ("PUTS", "Implied Volatility"),
+            
+        ])
+
+        headers = [
+            "impliedVolatility_x",
+            "openInterest_x",
+            "volume_x",
+            "lastPrice_x",
+            "bid_x",
+            "change_x",
+            "strike",
+            "change_y",
+            "bid_y",
+            "lastPrice_y",
+            "volume_y",
+            "openInterest_y",
+            "impliedVolatility_y",
+
+        ]
+        
+        custom_scale = [darkred, backgroundColor, darkgreen]
+
+        print(options_df.head())
+        
+        min_strike = options_df['strike'].min()
+        max_strike = options_df['strike'].max()
+        strike_range = max_strike - min_strike if max_strike != min_strike else 1
+
+        options_df = options_df.fillna(0)
+
+        options_df['volume_x'] = options_df['volume_x'].apply(lambda x: int(x))
+        options_df['lastPrice_x'] = options_df['lastPrice_x'].apply(lambda x: str(f"{x:.2f}"))
+        options_df['bid_x'] = options_df['bid_x'].apply(lambda x: str(f"{x:.2f}"))
+        options_df['change_x'] = options_df['change_x'].apply(lambda x: str(f"{x:.2f}"))
+        options_df['strike'] = options_df['strike'].apply(lambda x: str(f"{x:.2f}"))
+        options_df['change_y'] = options_df['change_y'].apply(lambda x: str(f"{x:.2f}"))
+        options_df['volume_y'] = options_df['volume_y'].apply(lambda x: int(x))
+        options_df['lastPrice_y'] = options_df['lastPrice_y'].apply(lambda x: str(f"{x:.2f}"))
+        options_df['bid_y'] = options_df['bid_y'].apply(lambda x: str(f"{x:.2f}"))
+
+        colorscale = pc.sample_colorscale(custom_scale, options_df.shape[0])
+
+        options_df_trunc = options_df[headers]
+        options_df_trunc.columns = columns
+
+        def apply_row_gradient(x):
+            return [f"background-color: {colorscale[i]}; color: white;" for i in range(len(x))]
+
+        options_df_trunc = options_df_trunc.style.apply(
+            apply_row_gradient, 
+            subset=["STRIKE"],
+            axis=0,
+        )
+
+        st.dataframe(
+            options_df_trunc, 
+            hide_index=True, 
+            width="stretch",
+        )
+
+        col1, col2, col3 = st.columns(3)
+
+        totalCallsOI, totalPutsOI, PCR_OI = calculateOIPCR(options_df["openInterest_x"], options_df["openInterest_y"])
+        with col1:
+            st.markdown(f"<h2 style='text-align: center'>{totalCallsOI}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center'>Total Calls OI</p>", unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"<h2 style='text-align: center'>{totalPutsOI}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center'>Total Puts OI</p>", unsafe_allow_html=True)
+        with col3:
+            st.markdown(f"<h2 style='text-align: center'>{PCR_OI:.3f}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center'>Puts-Calls Ratio</p>", unsafe_allow_html=True)
+
+    except Exception as e:
+        st.write("Data not found")
+        print(
+            e,
+            "\n", type(e).__name__,
+            "\n Filename:", __file__,         
+            "\n Line:", e.__traceback__.tb_lineno
+        )
 
 def overviewTile(ticker):
     with st.expander("Overview", expanded=True):
@@ -378,89 +563,43 @@ def overviewTile(ticker):
                 print(e)
                 st.write("Data not found.")
 
-def analysisTile(ticker, overview):
+def analysisTile(ticker):
     with st.expander("Technicals", expanded=True):
         try:
-            if ticker:
+            overview = readOverview(ticker)
+            candles = readCandles(ticker)
+
+            ticker_current_price = candles.iloc[-1]['Close']
+
+            if ticker_current_price:
                 # print("current", ticker_current_price)
-                marginOS = (float(overview["AnalystTargetPrice"]) - float(ticker)) / float(ticker) * 100
+                marginOS = (float(overview["AnalystTargetPrice"]) - float(ticker_current_price)) / float(ticker_current_price) * 100
                 st.markdown(f"<h2 style='text-align: center;'>   {marginOS:.2f}%</h2>", unsafe_allow_html=True)
                 st.markdown("<p style='text-align: center;'>Margin of Safety</p>", unsafe_allow_html=True)
 
-                sharpe_ratio = getSharpeRatio(candles)
-                st.markdown(f"<h2 style='text-align: center;'>   {sharpe_ratio:.2f}%</h2>", unsafe_allow_html=True)
-                st.markdown("<p style='text-align: center;'>Sharpe Ratio</p>", unsafe_allow_html=True)
+            sharpe_ratio = getSharpeRatio(candles)
+            st.markdown(f"<h2 style='text-align: center;'>   {sharpe_ratio:.2f}</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center;'>Sharpe Ratio</p>", unsafe_allow_html=True)
 
-                technicalsTile(selected_ticker)
+            technicalsTile(ticker)
         except Exception as e:
+            print(
+                type(e).__name__,          # TypeError
+                __file__,                  # /tmp/example.py
+                e.__traceback__.tb_lineno  # 2
+            )
             print(e)
             st.write("Data not found.")
 
-def optionsChainTile(ticker):
-    st.title("Options Chain")
-    try:
-        calls_df, puts_df = readOptionsChain(ticker)
-        options_df = calls_df.merge(puts_df, on="strike")
-
-        columns = pd.MultiIndex.from_tuples([
-            ("CALLS", "Volume"),
-            ("CALLS", "Last Price"),
-            ("CALLS", "Bid"),
-            ("CALLS", "Change"),
-            ("STRIKE", ""),
-            ("PUTS", "Change"),
-            ("PUTS", "Bid"),
-            ("PUTS", "Last Price"),
-            ("PUTS", "Volume")
-        ])
-
-        headers = [
-            "volume_x",
-            "lastPrice_x",
-            "bid_x",
-            "change_x",
-            "strike",
-            "change_y",
-            "volume_y",
-            "lastPrice_y",
-            "bid_y",
-        ]
-        
-        custom_scale = [darkred, backgroundColor, darkgreen]
-        
-        min_strike = options_df['strike'].min()
-        max_strike = options_df['strike'].max()
-        strike_range = max_strike - min_strike if max_strike != min_strike else 1
-
-        colorscale = pc.sample_colorscale(custom_scale, options_df.shape[0])
-
-        options_df_trunc = options_df[headers]
-        options_df_trunc.columns = columns
-        options_df_trunc = options_df_trunc.fillna(0)
-
-        def apply_row_gradient(x):
-            return [f"background-color: {colorscale[i]}; color: white;" for i in range(len(x))]
-
-        options_df_trunc = options_df_trunc.style.apply(
-            apply_row_gradient, 
-            subset=["STRIKE"],
-            axis=0,
-        )
-
-        st.dataframe(options_df_trunc, hide_index=True, width="stretch")
-
-    except Exception as e:
-        st.write("Data not found")
-        print(e)
 
 def technicalsTile(ticker):
-    candles = readCandle(ticker)
+    candles = readCandles(ticker)
     overview = readOverview(ticker)
 
     SMA50 = overview["50DayMovingAverage"]
-    MC_prices = monteCarloSimul(SMA50, 0.25, 0.5, n_sims=50000)
+    MC_prices, MC_percentile5, MC_percentile95 = monteCarloSimul(SMA50, 0.25, 0.5, n_sims=50000)
 
-    fig = px.histogram(data_frame=MC_prices, title="Monte Carlo Simulation", color_discrete_sequence=[purple])
+    fig = px.histogram(data_frame=MC_prices, title="Monte Carlo Simulation (1-Year Period)", color_discrete_sequence=[purple])
 
     fig.add_vline(
         x = MC_prices.mean(), 
@@ -471,18 +610,76 @@ def technicalsTile(ticker):
         annotation_position="top top"
     )
 
+    fig.add_vline(
+        x = MC_percentile5, 
+        line_width = 3, 
+        line_dash = "dash", 
+        line_color = yellow,
+        annotation_text=f"${MC_percentile5:.2f}",
+        annotation_position="top top"
+    )
+
+    fig.add_vline(
+        x = MC_percentile95, 
+        line_width = 3, 
+        line_dash = "dash", 
+        line_color = yellow,
+        annotation_text=f"${MC_percentile95:.2f}",
+        annotation_position="top top"
+    )
+
     st.plotly_chart(fig)
 
 
-ticker_current_price = titleTile(candles)
+selected_ticker = st.sidebar.selectbox("Choose a quote:", tickers)
+new_ticker = st.sidebar.text_input("Add a new ticker:")
+st.sidebar.divider()
+marketSentimentTile()
+
+if new_ticker != "":
+    addTicker(new_ticker)
+
+    try:
+        news = getNews(new_ticker)
+        saveNews(new_ticker, news)
+    except Exception as e:
+        print(e)
+
+    try:
+        prediction = getPrediction(new_ticker)
+        savePrediction(new_ticker, prediction)
+    except Exception as e:
+        print(e)
+
+    try:
+        candles = getCandles(new_ticker)
+        saveCandles(new_ticker, candles)
+    except Exception as e:
+        print(e)
+
+    try:
+        calls_df, puts_df = getOptionsChain(new_ticker)
+        saveOptionsChain(new_ticker, calls_df, puts_df)
+    except Exception as e:
+        print(e)
+
+    new_ticker = ""
+    selected_ticker = "AAPL"
+    st.rerun()
+
+# preds = readPredictions(selected_ticker)
+# candles = readCandle(selected_ticker)
+# print(df.head(5))
+
+titleTile(selected_ticker)
 
 st.divider()
 
 COL1, COL2 = st.columns([3, 2])
 with COL1:
-    chartTile(selected_ticker, candles)
+    chartTile(selected_ticker)
 with COL2:
-    sentimentTile(preds)
+    sentimentTile(selected_ticker)
 
 st.divider()
 
@@ -494,7 +691,7 @@ col1, col2 = st.columns(2)
 with col1:
     overview = overviewTile(selected_ticker)
 with col2:
-    analysisTile(ticker_current_price, overview)
+    analysisTile(selected_ticker)
 
 
 
