@@ -19,6 +19,9 @@ def getCandles(ticker):
         return None
     
 def saveCandles(ticker, data):
+    if not os.path.exists("./daily"):
+        os.makedirs("./daily")
+
     data.to_csv(f"./daily/daily_{ticker}.csv", mode='w')
     print("Saving Candle: Done!")
     print()
@@ -36,6 +39,9 @@ def getOverview(ticker):
         return None, None
 
 def saveOverview(ticker, data):
+    if not os.path.exists("./overviews"):
+        os.makedirs("./overviews")
+
     with open(f"./overviews/overview_{ticker}.csv", "wt") as outfile:
         writer = csv.writer(outfile)
         for key, value in data.items():

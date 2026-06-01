@@ -35,6 +35,8 @@ st.set_page_config(
 
 if "timeframe" not in st.session_state:
     st.session_state.timeframe = "1M"
+if "new_ticker" not in st.session_state:
+    st.session_state.new_ticker = ""
 
 def marketSentimentTile():
     try:
@@ -639,7 +641,7 @@ new_ticker = st.sidebar.text_input("Add a new ticker:")
 st.sidebar.divider()
 marketSentimentTile()
 
-if new_ticker != "":
+if new_ticker != st.session_state.new_ticker:
     addTicker(new_ticker)
 
     try:
@@ -673,8 +675,9 @@ if new_ticker != "":
     except Exception as e:
         print(e)
 
-    new_ticker = ""
+    new_ticker = st.session_state.new_ticker
     selected_ticker = "AAPL"
+    
     st.rerun()
 
 # preds = readPredictions(selected_ticker)
