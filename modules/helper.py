@@ -20,47 +20,57 @@ def addTicker(ticker):
         outfile.write("\n" + ticker)
 
 def readCandles(ticker):
-    data = pd.read_csv(f"./daily/daily_{ticker}.csv")
-    return data
-
-def readNews(ticker):
-    with open(f"./news/news_{ticker}.txt", 'rt') as infile:
-        raw = infile.readlines()
-        data = [d.strip("\n") for d in raw]
-    
-    return data
-
-def readPredictions(ticker):
-    with open(f"./predictions/predictions_{ticker}.txt", "rt") as infile:
-        data = json.loads(infile.read())
-    
-    return data
-
-def readOverview(ticker):
-    with open(f'./overviews/overview_{ticker}.csv', 'rt') as infile:
-        reader = csv.reader(infile)
-        data = {}
-        for row in reader:
-            data[row[0]] = row[1]
-        
-    return data
-
-def readOptionsChain(ticker):
-    calls_df = pd.read_csv(f"./calls/calls_{ticker}.csv")
-    puts_df = pd.read_csv(f"./puts/puts_{ticker}.csv")
-    return calls_df, puts_df
-
-def readBBands(ticker):
     try:
-        data = pd.read_csv(f"./bbands/bbands_{ticker}.csv")
+        data = pd.read_csv(f"./daily/daily_{ticker}.csv")
         return data
     except Exception as e:
         print(e)
 
-def readFearAndGreed():
-    data = pd.read_json("./others/fear_and_greed.json")
+def readNews(ticker):
+    try:
+        with open(f"./news/news_{ticker}.txt", 'rt') as infile:
+            raw = infile.readlines()
+            data = [d.strip("\n") for d in raw]
     
-    return data
+        return data
+    except Exception as e:
+        print(e)
+
+def readPredictions(ticker):
+    try:
+        with open(f"./predictions/predictions_{ticker}.txt", "rt") as infile:
+            data = json.loads(infile.read())
+        
+        return data
+    except Exception as e:
+        print(e)
+
+def readOverview(ticker):
+    try:
+        with open(f'./overviews/overview_{ticker}.csv', 'rt') as infile:
+            reader = csv.reader(infile)
+            data = {}
+            for row in reader:
+                data[row[0]] = row[1]
+            
+        return data
+    except Exception as e:
+        print(e)
+
+def readOptionsChain(ticker):
+    try:
+        calls_df = pd.read_csv(f"./calls/calls_{ticker}.csv")
+        puts_df = pd.read_csv(f"./puts/puts_{ticker}.csv")
+        return calls_df, puts_df
+    except Exception as e:
+        print(e)
+
+def readFearAndGreed():
+    try:
+        data = pd.read_json("./others/fear_and_greed.json")
+        return data
+    except Exception as e:
+        print(e)
 
 if __name__ == "__main__":
     # addTicker("AMZN")

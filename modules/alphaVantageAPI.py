@@ -7,24 +7,24 @@ import os, csv
 load_dotenv()
 AV_API_KEY = os.getenv("AV_API_KEY")
 
-def getCandles(ticker):
-    try:
-        ts = TimeSeries(key=AV_API_KEY, output_format='pandas')
+# def getCandles(ticker):
+#     try:
+#         ts = TimeSeries(key=AV_API_KEY, output_format='pandas')
 
-        data, meta = ts.get_daily(symbol=ticker, outputsize='compact')
+#         data, meta = ts.get_daily(symbol=ticker, outputsize='compact')
 
-        return data, meta
-    except Exception as e:
-        print(e)
-        return None
+#         return data, meta
+#     except Exception as e:
+#         print(e)
+#         return None
     
-def saveCandles(ticker, data):
-    if not os.path.exists("./daily"):
-        os.makedirs("./daily")
+# def saveCandles(ticker, data):
+#     if not os.path.exists("./daily"):
+#         os.makedirs("./daily")
 
-    data.to_csv(f"./daily/daily_{ticker}.csv", mode='w')
-    print("Saving Candle: Done!")
-    print()
+#     data.to_csv(f"./daily/daily_{ticker}.csv", mode='w')
+#     print("Saving Candle: Done!")
+#     print()
 
 
 def getOverview(ticker):
@@ -51,19 +51,19 @@ def saveOverview(ticker, data):
     print()
 
 
-def getBBands(ticker):
-    try:
-        ti = TechIndicators(key='AV_API_KEY', output_format='pandas')
-        data, meta_data = ti.get_bbands(symbol=ticker, interval='60min', time_period=60)
-        return data
-    except Exception as e:
-        print(e)
-        return None
+# def getBBands(ticker):
+#     try:
+#         ti = TechIndicators(key='AV_API_KEY', output_format='pandas')
+#         data, meta_data = ti.get_bbands(symbol=ticker, interval='60min', time_period=60)
+#         return data
+#     except Exception as e:
+#         print(e)
+#         return None
 
-def saveBBands(ticker, data):
-    data.to_csv(f"./bbands/bbands_{ticker}.csv")
-    print("done!")
-    print()
+# def saveBBands(ticker, data):
+#     data.to_csv(f"./bbands/bbands_{ticker}.csv")
+#     print("done!")
+#     print()
 
 if __name__ == "__main__":
     bbands = getBBands("AAPL")

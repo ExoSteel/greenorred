@@ -37,51 +37,12 @@ def getOptionsChain(ticker):
     data = yf.Ticker(ticker, session=session)
 
     options = data.options
-    # print(options)
-
-    # 2. Fetch the specific option chain for a date
     opt = data.option_chain(options[0])
 
-    # 3. Separate into calls and puts DataFrames
     calls_df = opt.calls
     puts_df = opt.puts
 
-    # print(calls_df.head(5))
-    # print()
-    # print(puts_df.head())
     return calls_df, puts_df
-
-    # # This returns columns like: strike, lastPrice, bid, ask, volume, openInterest, impliedVolatility
-    # print(calls_df)
-    # print()
-    # print(puts_df)
-
-    # columns = ['strike', 'lastPrice', 'volume', 'openInterest']
-
-    # import plotly.graph_objects as go
-    # headers = [
-    #     "Call Volume",
-    #     "Call Last",
-    #     "Call Bid"
-    #     "Strike",
-    #     "Put Last",
-    #     "Put Volume"
-    # ]
-
-
-    # fig = go.Figure(data=[go.Table(
-    #     header=dict(
-    #         values=headers,
-    #         align="center"
-
-    #     ),
-    #     cells=dict(
-    #         values=[calls_df[col].tolist() for col in columns],
-    #         align="center"
-    #     )
-    # )])
-
-    # fig.show()
 
 def saveOptionsChain(ticker, calls_df, puts_df):
     if not os.path.exists("./calls"):
