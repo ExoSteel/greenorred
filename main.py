@@ -663,6 +663,13 @@ if new_ticker != "":
     except Exception as e:
         print(e)
 
+    try: 
+        fng = getFearAndGreed()
+        if type(fng) == dict:
+            saveFearAndGreed(fng)
+    except Exception as e:
+        print(e)
+
     new_ticker = ""
     selected_ticker = "AAPL"
     st.rerun()
