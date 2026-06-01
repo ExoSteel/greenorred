@@ -174,6 +174,8 @@ def titleTile(ticker):
             data = getPrediction(ticker)
             if data is not None:
                 savePrediction(ticker, data)
+            
+            st.rerun()
 
 def sentimentTile(ticker):
     st.subheader("General Sentiment")
@@ -699,8 +701,6 @@ if new_ticker != st.session_state.new_ticker:
 
     new_ticker = st.session_state.new_ticker
     selected_ticker = "AAPL"
-
-    st.rerun()
 
 titleTile(selected_ticker)
 
