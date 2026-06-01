@@ -139,7 +139,7 @@ def titleTile(ticker):
         candles = readCandles(ticker)
     except:
         pass
-    
+
     col1, col2, col3 = st.columns([1,7,1], vertical_alignment="center")
     with col1:
         st.title(ticker)
@@ -154,29 +154,33 @@ def titleTile(ticker):
             pass
     with col3:
         if st.button("Refresh"):
-            data = getNews(ticker)
-            if data is not None:
-                saveNews(ticker, data)
+            st.cache_data.clear()
 
-            data = getCandles(ticker)
-            if data is not None:
-                saveCandles(ticker, data)
+            print("called")
+            with st.spinner("Fetching fresh market data..."):
+                data = getNews(ticker)
+                if data is not None:
+                    saveNews(ticker, data)
 
-            data, meta = getOverview(ticker)
-            if data is not None and meta is not None:
-                saveOverview(ticker, data)
+                data = getCandles(ticker)
+                if data is not None:
+                    saveCandles(ticker, data)
 
-            calls_df, puts_df = getOptionsChain(ticker)
-            if calls_df is not None and puts_df is not None:
-                saveOptionsChain(ticker, calls_df, puts_df)
+                data, meta = getOverview(ticker)
+                if data is not None and meta is not None:
+                    saveOverview(ticker, data)
 
-            fng = getFearAndGreed()
-            if type(fng) == dict:
-                saveFearAndGreed(fng)
+                calls_df, puts_df = getOptionsChain(ticker)
+                if calls_df is not None and puts_df is not None:
+                    saveOptionsChain(ticker, calls_df, puts_df)
 
-            data = getPrediction(ticker)
-            if data is not None:
-                savePrediction(ticker, data)
+                fng = getFearAndGreed()
+                if type(fng) == dict:
+                    saveFearAndGreed(fng)
+
+                data = getPrediction(ticker)
+                if data is not None:
+                    savePrediction(ticker, data)
             
             st.rerun()
 
