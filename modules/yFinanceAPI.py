@@ -83,7 +83,7 @@ def getOptionsChain(ticker):
 def saveOptionsChain(ticker, calls_df, puts_df):
     if not os.path.exists("./calls"):
         os.makedirs("./calls")
-    if not os.path.exists("puts"):
+    if not os.path.exists("./puts"):
         os.makedirs("./puts")
 
     calls_df.to_csv(f"./calls/calls_{ticker}.csv")

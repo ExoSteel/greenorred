@@ -44,8 +44,6 @@ def marketSentimentTile():
     except:
         fng = getFearAndGreed()
         saveFearAndGreed(fng)
-    # st.sidebar.title("Fear & Greed Index")
-    # st.sidebar.write(f"{fng["fear_and_greed"]["score"]:.2f}")
 
     fng_score = fng["fear_and_greed"]["score"]
     fng_rating = fng["fear_and_greed"]["rating"]
@@ -157,19 +155,13 @@ def titleTile(ticker):
             if data is not None:
                 saveNews(ticker, data)
 
-            data = getPrediction(ticker)
-            if data is not None:
-                savePrediction(ticker, data)
-
             data = getCandles(ticker)
             if data is not None:
                 saveCandles(ticker, data)
-            # print(data)
 
             data, meta = getOverview(ticker)
             if data is not None and meta is not None:
                 saveOverview(ticker, data)
-            # print(data)
 
             calls_df, puts_df = getOptionsChain(ticker)
             if calls_df is not None and puts_df is not None:
@@ -178,6 +170,10 @@ def titleTile(ticker):
             fng = getFearAndGreed()
             if type(fng) == dict:
                 saveFearAndGreed(fng)
+
+            data = getPrediction(ticker)
+            if data is not None:
+                savePrediction(ticker, data)
 
 def sentimentTile(ticker):
     st.subheader("General Sentiment")
@@ -596,7 +592,6 @@ def analysisTile(ticker):
             print(e)
             st.write("Data not found.")
 
-
 def technicalsTile(ticker):
     candles = readCandles(ticker)
     overview = readOverview(ticker)
@@ -651,12 +646,6 @@ if new_ticker != st.session_state.new_ticker:
         print(e)
 
     try:
-        prediction = getPrediction(new_ticker)
-        savePrediction(new_ticker, prediction)
-    except Exception as e:
-        print(e)
-
-    try:
         candles = getCandles(new_ticker)
         saveCandles(new_ticker, candles)
     except Exception as e:
@@ -675,14 +664,16 @@ if new_ticker != st.session_state.new_ticker:
     except Exception as e:
         print(e)
 
+    try:
+        prediction = getPrediction(new_ticker)
+        savePrediction(new_ticker, prediction)
+    except Exception as e:
+        print(e)
+
     new_ticker = st.session_state.new_ticker
     selected_ticker = "AAPL"
-    
-    st.rerun()
 
-# preds = readPredictions(selected_ticker)
-# candles = readCandle(selected_ticker)
-# print(df.head(5))
+    st.rerun()
 
 titleTile(selected_ticker)
 
@@ -705,11 +696,6 @@ with col1:
     overview = overviewTile(selected_ticker)
 with col2:
     analysisTile(selected_ticker)
-
-
-
-
-
 
 
 # def chatbot():
