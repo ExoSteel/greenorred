@@ -412,8 +412,6 @@ def optionsChainTile(ticker):
         ]
         
         custom_scale = [darkred, backgroundColor, darkgreen]
-
-        print(options_df.head())
         
         min_strike = options_df['strike'].min()
         max_strike = options_df['strike'].max()
@@ -566,9 +564,11 @@ def overviewTile(ticker):
 
 def analysisTile(ticker):
     with st.expander("Technicals", expanded=True):
+        overview = readOverview(ticker)
+        candles = readCandles(ticker)
+        
         try:
-            overview = readOverview(ticker)
-            candles = readCandles(ticker)
+            
 
             ticker_current_price = candles.iloc[-1]['Close']
 
@@ -577,12 +577,6 @@ def analysisTile(ticker):
                 marginOS = (float(overview["AnalystTargetPrice"]) - float(ticker_current_price)) / float(ticker_current_price) * 100
                 st.markdown(f"<h2 style='text-align: center;'>   {marginOS:.2f}%</h2>", unsafe_allow_html=True)
                 st.markdown("<p style='text-align: center;'>Margin of Safety</p>", unsafe_allow_html=True)
-
-            sharpe_ratio = getSharpeRatio(candles)
-            st.markdown(f"<h2 style='text-align: center;'>   {sharpe_ratio:.2f}</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center;'>Sharpe Ratio</p>", unsafe_allow_html=True)
-
-            technicalsTile(ticker)
         except Exception as e:
             print(
                 type(e).__name__,          # TypeError
@@ -591,6 +585,13 @@ def analysisTile(ticker):
             )
             print(e)
             st.write("Data not found.")
+
+        sharpe_ratio = getSharpeRatio(candles)
+        st.markdown(f"<h2 style='text-align: center;'>   {sharpe_ratio:.2f}</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center;'>Sharpe Ratio</p>", unsafe_allow_html=True)
+
+        technicalsTile(ticker)
+        
 
 def technicalsTile(ticker):
     candles = readCandles(ticker)
