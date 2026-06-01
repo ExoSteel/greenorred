@@ -5,7 +5,7 @@ from modules.yFinanceAPI import getCandles, saveCandles, getOptionsChain, saveOp
 from modules.finnhubAPI import getNews, saveNews
 from modules.finBertting import getPrediction, savePrediction
 from modules.fearAndGreed import getFearAndGreed, saveFearAndGreed
-from modules.technicals import monteCarloSimul, getResistanceLevel, getSharpeRatio, getBBands, calculateOIPCR
+from modules.technicals import monteCarloSimul, getResistanceLevel, getSharpeRatio, getBBands, calculateOIPCR, getLogReturns
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px
@@ -594,9 +594,37 @@ def analysisTile(ticker):
 
 def technicalsTile(ticker):
     candles = readCandles(ticker)
+    calls_df, puts_df = readOptionsChain(ticker)
+
+    options_df = calls_df.merge(puts_df, on="strike")
+    ticker_current_price = candles.iloc[-1]['Close']
+
+    atm_idx = (options_df['strike'] - ticker_current_price).abs().idxmin()
+    atm_row = options_df.loc[atm_idx]
+    
+    call_iv = atm_row['impliedVolatility_x']
+    put_iv = atm_row['impliedVolatility_y']
+
+    sigma = (call_iv + put_iv) / 2
+
+    if sigma > 1.0:
+        sigma = sigma / 100.0
+    
+    candles["Log Returns"] = getLogReturns(candles)
+
+    daily_mean = candles['Log Returns'].mean()
+    daily_variance = candles['Log Returns'].var()
+
+    mu = (daily_mean * 252) + (0.5 * daily_variance * 252)
+
+    st.markdown(f"<h2 style='text-align: center;'>   {sigma:.2f}</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center;'>ATM Implied Volatility</p>", unsafe_allow_html=True)
+
+    st.markdown(f"<h2 style='text-align: center;'>   {mu:.2f}</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center;'>Expected Returns</p>", unsafe_allow_html=True)
 
     SMA50 = candles['Close'].rolling(50).mean().iloc[-1]
-    MC_prices, MC_percentile5, MC_percentile95 = monteCarloSimul(SMA50, 0.25, 0.5, n_sims=50000)
+    MC_prices, MC_percentile5, MC_percentile95 = monteCarloSimul(S0=SMA50, mu=mu, sigma=sigma, n_sims=50000)
 
     fig = px.histogram(data_frame=MC_prices, title="Monte Carlo Simulation (1-Year Period)", color_discrete_sequence=[purple])
 

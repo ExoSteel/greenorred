@@ -39,6 +39,9 @@ def monteCarloSimul(S0, mu, sigma, T=1, dt=1/262, n_steps=262, n_sims=10000):
 
     return final_prices, percentile5, percentile95
 
+def getLogReturns(df):
+    return np.log(df["Close"] / df["Close"].shift(1))
+
 def getBBands(df, N=20, K=2):
     # Middle Band
     df["Real Middle Band"] = df["Close"].rolling(window=N).mean()
