@@ -594,9 +594,8 @@ def analysisTile(ticker):
 
 def technicalsTile(ticker):
     candles = readCandles(ticker)
-    overview = readOverview(ticker)
 
-    SMA50 = overview["50DayMovingAverage"]
+    SMA50 = candles['Close'].rolling(50).mean().iloc[-1]
     MC_prices, MC_percentile5, MC_percentile95 = monteCarloSimul(SMA50, 0.25, 0.5, n_sims=50000)
 
     fig = px.histogram(data_frame=MC_prices, title="Monte Carlo Simulation (1-Year Period)", color_discrete_sequence=[purple])
