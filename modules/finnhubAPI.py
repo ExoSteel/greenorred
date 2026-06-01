@@ -1,6 +1,5 @@
 from dotenv import load_dotenv
-import os, json
-import finnhub
+import os, json, finnhub
 from datetime import datetime, timedelta, timezone
 
 load_dotenv()
@@ -16,9 +15,12 @@ def getNews(ticker, days=365):
     return news
 
 def saveNews(ticker, news):
-     with open(f"./news/news_{ticker}.txt", 'wt') as infile:
-            for article in news:
-                infile.write(f"{article['headline']}, {article['summary']}\n")
+    if not os.path.exists("./news"):
+        os.makedirs("./news")
+
+    with open(f"./news/news_{ticker}.txt", 'wt') as infile:
+        for article in news:
+            infile.write(f"{article['headline']}, {article['summary']}\n")
 
 
 if __name__ == "__main__":

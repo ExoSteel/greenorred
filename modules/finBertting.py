@@ -30,5 +30,8 @@ def getPrediction(ticker):
     return pred
 
 def savePrediction(ticker, data):
+    if not os.path.exists("./predictions"):
+        os.makedirs("./predictions")
+
     with open(f"./predictions/predictions_{ticker}.txt", 'wt') as outfile:
         outfile.writelines([json.dumps(data)])

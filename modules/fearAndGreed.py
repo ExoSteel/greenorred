@@ -1,5 +1,4 @@
-import cloudscraper
-import json
+import cloudscraper, json, os
 
 def getFearAndGreed():
     try:
@@ -18,6 +17,9 @@ def getFearAndGreed():
         print(f"Error fetching data: {e}")
 
 def saveFearAndGreed(data):
+    if not os.path.exists("./others"):
+        os.makedirs("./others")
+
     with open("./others/fear_and_greed.json", "wt", encoding='utf-8') as outfile:
         json.dump(data, outfile, ensure_ascii=False, indent=4)
 

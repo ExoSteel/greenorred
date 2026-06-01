@@ -1,11 +1,14 @@
 import yfinance as yf
-import json
+import json, os
 
 def getNews(ticker):
     tick = yf.Ticker(ticker)
     return tick.news
 
 def saveNews(ticker, data):
+    if not os.path.exists("./news"):
+        os.makedirs("./news")
+
     with open(f"./news/news_{ticker}.txt", 'wt') as infile:
         for article in data:
             infile.write(f"{article['content']['title']}, {article['content']['summary']}\n")
@@ -20,6 +23,9 @@ def getCandles(ticker):
     return data
 
 def saveCandles(ticker, data):
+    if not os.path.exists("./daily"):
+        os.makedirs("./daily")
+
     data.to_csv(f"./daily/daily_{ticker}.csv")
     print("Saved: Candles")
 
@@ -75,6 +81,11 @@ def getOptionsChain(ticker):
     # fig.show()
 
 def saveOptionsChain(ticker, calls_df, puts_df):
+    if not os.path.exists("./calls"):
+        os.makedirs("./calls")
+    if not os.path.exists("puts"):
+        os.makedirs("./puts")
+
     calls_df.to_csv(f"./calls/calls_{ticker}.csv")
     puts_df.to_csv(f"./puts/puts_{ticker}.csv")
     print("Saved: Calls & Puts")
@@ -87,6 +98,9 @@ def getIncomeSTMT(ticker):
     return data
 
 def saveIncomeSTMT(ticker, data):
+    if not os.path.exists("./statements"):
+        os.makedirs("./statements")
+
     data.to_csv(f"./statements/statements_{ticker}.csv")
     print("Saved: Income Statement")
 
@@ -98,6 +112,9 @@ def getBalanceSheet(ticker):
     return data
 
 def saveBalanceSheet(ticker, data):
+    if not os.path.exists("./balances"):
+        os.makedirs("./balances")
+
     data.to_csv(f"./balances/balance_{ticker}.csv")
     print("Saved: Balance Sheet")
 
