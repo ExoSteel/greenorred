@@ -156,7 +156,6 @@ def titleTile(ticker):
         if st.button("Refresh"):
             st.cache_data.clear()
 
-            print("called")
             with st.spinner("Fetching fresh market data..."):
                 data = getNews(ticker)
                 if data is not None:

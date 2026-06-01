@@ -1,8 +1,11 @@
 import yfinance as yf
 import json, os
+from curl_cffi.requests import Session
+
+session = Session(impersonate="chrome")
 
 def getNews(ticker):
-    tick = yf.Ticker(ticker)
+    tick = yf.Ticker(ticker, session=session)
     return tick.news
 
 def saveNews(ticker, data):
@@ -15,7 +18,7 @@ def saveNews(ticker, data):
 
 
 def getCandles(ticker):
-    tick = yf.Ticker(ticker)
+    tick = yf.Ticker(ticker, session=session)
     data = tick.history(period="max")
 
     # data = yf.download(ticker, period='max')
@@ -31,7 +34,7 @@ def saveCandles(ticker, data):
 
 
 def getOptionsChain(ticker):
-    data = yf.Ticker(ticker)
+    data = yf.Ticker(ticker, session=session)
 
     options = data.options
     # print(options)
@@ -92,7 +95,7 @@ def saveOptionsChain(ticker, calls_df, puts_df):
 
 
 def getIncomeSTMT(ticker):
-    tick = yf.Ticker(ticker)
+    tick = yf.Ticker(ticker, session=session)
     data = tick.get_income_stmt()
 
     return data
@@ -106,7 +109,7 @@ def saveIncomeSTMT(ticker, data):
 
 
 def getBalanceSheet(ticker):
-    tick = yf.Ticker(ticker)
+    tick = yf.Ticker(ticker, session=session)
     data = tick.get_balance_sheet()
 
     return data
