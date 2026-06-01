@@ -564,11 +564,10 @@ def overviewTile(ticker):
 
 def analysisTile(ticker):
     with st.expander("Technicals", expanded=True):
-        overview = readOverview(ticker)
         candles = readCandles(ticker)
         
         try:
-            
+            overview = readOverview(ticker)
 
             ticker_current_price = candles.iloc[-1]['Close']
 
