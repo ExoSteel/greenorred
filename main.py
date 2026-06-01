@@ -135,8 +135,11 @@ def marketSentimentTile():
     st.sidebar.plotly_chart(fig)
 
 def titleTile(ticker):
-    candles = readCandles(ticker)
-
+    try:
+        candles = readCandles(ticker)
+    except:
+        pass
+    
     col1, col2, col3 = st.columns([1,7,1], vertical_alignment="center")
     with col1:
         st.title(ticker)
