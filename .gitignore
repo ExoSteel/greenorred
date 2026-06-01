@@ -5,12 +5,11 @@
 
 modules/__pycache__/
 
-daily/
-news/
-overviews/
-predictions/
-calls/
-puts/
-bbands/
-others/
-financials/
+daily/*
+news/*
+overviews/*
+predictions/*
+calls/*
+puts/*
+others/*
+financials/*
