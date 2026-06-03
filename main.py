@@ -1,5 +1,5 @@
 import streamlit as st
-from modules.helper import readTicker, addTicker, readCandles, readPredictions, readOverview, readOptionsChain, readBBands, readFearAndGreed
+from modules.helper import readTicker, addTicker, readCandles, readPredictions, readOverview, readOptionsChain, readFearAndGreed
 from modules.alphaVantageAPI import getOverview, saveOverview
 from modules.yFinanceAPI import getCandles, saveCandles, getOptionsChain, saveOptionsChain
 from modules.finnhubAPI import getNews, saveNews
