@@ -130,7 +130,7 @@ def marketSentimentTile():
             )
 
         st.sidebar.plotly_chart(fig)
-    except e as Exception:
+    except Exception as e:
         print(e)
         st.write("Data not found.")
     
