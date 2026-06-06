@@ -23,6 +23,21 @@ def saveNews(ticker, news):
             infile.write(f"{article['headline']}, {article['summary']}\n")
 
 
+def getFinancials(ticker):
+    try:
+        data = finnhub_client.company_basic_financials('AAPL', 'all')
+        return data
+    except Exception as e:
+        print(e)
+
+def saveFinancials(ticker, data):
+    if not os.path.exists("./financials"):
+        os.makedirs("./financials")
+
+    with open(f"./financials/financials_{"AAPL"}.txt", 'wt') as outfile:
+        json.dump(data, outfile, ensure_ascii=False, indent=4)
+
+
 if __name__ == "__main__":
     data = finnhub_client.company_basic_financials('AAPL', 'all')
     

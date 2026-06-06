@@ -41,99 +41,99 @@ if "new_ticker" not in st.session_state:
 def marketSentimentTile():
     try:
         fng = readFearAndGreed()
-    except:
-        fng = getFearAndGreed()
-        saveFearAndGreed(fng)
 
-    fng_score = fng["fear_and_greed"]["score"]
-    fng_rating = fng["fear_and_greed"]["rating"]
-    fng_rating_upper = {
-        "extreme greed": "Extreme Greed",
-        "greed": "Greed",
-        "neutral": "Neutral",
-        "fear": "Fear",
-        "extreme fear": "Extreme Fear"
-    }
-    fng_rating = fng_rating_upper[fng_rating]
+        fng_score = fng["fear_and_greed"]["score"]
+        fng_rating = fng["fear_and_greed"]["rating"]
+        fng_rating_upper = {
+            "extreme greed": "Extreme Greed",
+            "greed": "Greed",
+            "neutral": "Neutral",
+            "fear": "Fear",
+            "extreme fear": "Extreme Fear"
+        }
+        fng_rating = fng_rating_upper[fng_rating]
 
-    fng_rating_color = {
-        "Extreme Greed": darkgreen,
-        "Greed": green,
-        "Neutral": white,
-        "Fear": red,
-        "Extreme Fear": darkred
-    }
+        fng_rating_color = {
+            "Extreme Greed": darkgreen,
+            "Greed": green,
+            "Neutral": white,
+            "Fear": red,
+            "Extreme Fear": darkred
+        }
 
-    fig = go.Figure(go.Indicator(
-        mode = "gauge+number",
-        domain = {'x': [0, 1], 'y': [0.1, 0.6]},
-        value = fng_score,
-        title = {
-            'text': "Fear & Greed Index"
-            },
-        gauge = {
-            'axis': {'range': [None, 100]},
-            'steps' : [
-                {'range': [0, 20], 'color': darkred},
-                {'range': [20, 40], 'color': red},
-                {'range': [40, 60], 'color': yellow},
-                {'range': [60, 80], 'color': green},
-                {'range': [80, 100], 'color': darkgreen}
-            ],
-            'bar': {'color': white},
-            }
-        ),
-    )
+        fig = go.Figure(go.Indicator(
+            mode = "gauge+number",
+            domain = {'x': [0, 1], 'y': [0.1, 0.6]},
+            value = fng_score,
+            title = {
+                'text': "Fear & Greed Index"
+                },
+            gauge = {
+                'axis': {'range': [None, 100]},
+                'steps' : [
+                    {'range': [0, 20], 'color': darkred},
+                    {'range': [20, 40], 'color': red},
+                    {'range': [40, 60], 'color': yellow},
+                    {'range': [60, 80], 'color': green},
+                    {'range': [80, 100], 'color': darkgreen}
+                ],
+                'bar': {'color': white},
+                }
+            ),
+        )
 
-    fig.update_layout(
-        height=300,
-        margin=dict(t=1, b=1, l=1, r=1),
-        font = {'color': fng_rating_color[fng_rating]}
-    )
+        fig.update_layout(
+            height=300,
+            margin=dict(t=1, b=1, l=1, r=1),
+            font = {'color': fng_rating_color[fng_rating]}
+        )
 
-    st.sidebar.plotly_chart(fig)
+        st.sidebar.plotly_chart(fig)
 
-    vix = fng["market_volatility_vix"]["data"]
-    vix50 = fng["market_volatility_vix_50"]["data"]
-    
-    vix_df = pd.DataFrame.from_dict(vix, orient="columns")
-    vix_df['date'] = pd.to_datetime(vix_df['x'], unit='ms')
+        vix = fng["market_volatility_vix"]["data"]
+        vix50 = fng["market_volatility_vix_50"]["data"]
+        
+        vix_df = pd.DataFrame.from_dict(vix, orient="columns")
+        vix_df['date'] = pd.to_datetime(vix_df['x'], unit='ms')
 
-    vix50_df = pd.DataFrame.from_dict(vix50, orient="columns")
-    vix50_df['date'] = pd.to_datetime(vix50_df['x'], unit='ms')
+        vix50_df = pd.DataFrame.from_dict(vix50, orient="columns")
+        vix50_df['date'] = pd.to_datetime(vix50_df['x'], unit='ms')
 
-    fig = go.Figure(data=[
-            go.Scatter(
-                x = vix_df["date"],
-                y = vix_df["y"],
+        fig = go.Figure(data=[
+                go.Scatter(
+                    x = vix_df["date"],
+                    y = vix_df["y"],
+                    mode = "lines",
+                    name = "VIX",
+                    line = dict(color=blue, width=1)
+                )
+            ]
+        )
+
+        fig.add_trace(go.Scatter(
+                x = vix50_df["date"],
+                y = vix50_df["y"],
                 mode = "lines",
-                name = "VIX",
-                line = dict(color=blue, width=1)
-            )
-        ]
-    )
-
-    fig.add_trace(go.Scatter(
-            x = vix50_df["date"],
-            y = vix50_df["y"],
-            mode = "lines",
-            name = "VIX SMA50",
-            line = dict(color=yellow, width=1)
-        )
-    )
-
-    fig.update_layout(
-            legend=dict(
-                orientation="v",
-                yanchor="auto",
-                y=1,
-                xanchor="right",
-                x=0.2
+                name = "VIX SMA50",
+                line = dict(color=yellow, width=1)
             )
         )
 
-    st.sidebar.plotly_chart(fig)
+        fig.update_layout(
+                legend=dict(
+                    orientation="v",
+                    yanchor="auto",
+                    y=1,
+                    xanchor="right",
+                    x=0.2
+                )
+            )
 
+        st.sidebar.plotly_chart(fig)
+    except e as Exception:
+        print(e)
+        st.write("Data not found.")
+    
 def titleTile(ticker):
     try:
         candles = readCandles(ticker)
