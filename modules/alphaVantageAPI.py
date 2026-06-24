@@ -66,6 +66,9 @@ def saveOverview(ticker, data):
 #     print()
 
 if __name__ == "__main__":
-    bbands = getBBands("AAPL")
-    print(bbands)
-    saveBBands("AAPL", bbands)
+    # bbands = getBBands("AAPL")
+    # print(bbands)
+    # saveBBands("AAPL", bbands)
+
+    overview, meta = getOverview("GOOG")
+    saveOverview("GOOG", overview)

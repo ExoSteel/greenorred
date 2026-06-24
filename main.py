@@ -5,7 +5,7 @@ from modules.yFinanceAPI import getCandles, saveCandles, getOptionsChain, saveOp
 from modules.finnhubAPI import getNews, saveNews
 from modules.finBertting import getPrediction, savePrediction
 from modules.fearAndGreed import getFearAndGreed, saveFearAndGreed
-from modules.technicals import monteCarloSimul, getResistanceLevel, getSharpeRatio, getBBands, calculateOIPCR, getLogReturns
+from modules.technicals import monteCarloSimul, getResistanceLevel, getSharpeRatio, getBBands, calculatePCR, calculateVolatility, calculateCAPM
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px
@@ -140,7 +140,7 @@ def titleTile(ticker):
     except:
         pass
 
-    col1, col2, col3 = st.columns([1,7,1], vertical_alignment="center")
+    col1, col2, col3 = st.columns([1,4,1], vertical_alignment="center")
     with col1:
         st.title(ticker)
         # st.markdown(f"<h1 style='justify-self:center;'>${selected_ticker}</h1>", unsafe_allow_html=True)
@@ -166,7 +166,7 @@ def titleTile(ticker):
                     saveCandles(ticker, data)
 
                 data, meta = getOverview(ticker)
-                if data is not None and meta is not None:
+                if data is not None:
                     saveOverview(ticker, data)
 
                 calls_df, puts_df = getOptionsChain(ticker)
@@ -457,18 +457,36 @@ def optionsChainTile(ticker):
             width="stretch",
         )
 
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3 = st.columns([2,1,2])
 
-        totalCallsOI, totalPutsOI, PCR_OI = calculateOIPCR(options_df["openInterest_x"], options_df["openInterest_y"])
         with col1:
-            st.markdown(f"<h2 style='text-align: center'>{totalCallsOI}</h2>", unsafe_allow_html=True)
-            st.markdown(f"<p style='text-align: center'>Total Calls OI</p>", unsafe_allow_html=True)
+            col4, col5, col6 = st.columns(3)
+
+            totalCallsOI, totalPutsOI, PCR_OI = calculatePCR(options_df["openInterest_x"], options_df["openInterest_y"])
+            with col4:
+                st.markdown(f"<h2 style='text-align: center'>{totalCallsOI}</h2>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center'>Total Calls OI</p>", unsafe_allow_html=True)
+            with col5:
+                st.markdown(f"<h2 style='text-align: center'>{totalPutsOI}</h2>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center'>Total Puts OI</p>", unsafe_allow_html=True)
+            with col6:
+                st.markdown(f"<h2 style='text-align: center'>{PCR_OI:.3f}</h2>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center'>Puts-Calls Ratio (OI)</p>", unsafe_allow_html=True)
         with col2:
-            st.markdown(f"<h2 style='text-align: center'>{totalPutsOI}</h2>", unsafe_allow_html=True)
-            st.markdown(f"<p style='text-align: center'>Total Puts OI</p>", unsafe_allow_html=True)
+            pass
         with col3:
-            st.markdown(f"<h2 style='text-align: center'>{PCR_OI:.3f}</h2>", unsafe_allow_html=True)
-            st.markdown(f"<p style='text-align: center'>Puts-Calls Ratio</p>", unsafe_allow_html=True)
+            col4, col5, col6 = st.columns(3)
+
+            totalCallsVOL, totalPutsVOL, PCR_VOL = calculatePCR(options_df["volume_x"], options_df["volume_y"])
+            with col4:
+                st.markdown(f"<h2 style='text-align: center'>{totalCallsVOL}</h2>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center'>Total Calls Volume</p>", unsafe_allow_html=True)
+            with col5:
+                st.markdown(f"<h2 style='text-align: center'>{totalPutsVOL}</h2>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center'>Total Puts Volume</p>", unsafe_allow_html=True)
+            with col6:
+                st.markdown(f"<h2 style='text-align: center'>{PCR_VOL:.3f}</h2>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center'>Puts-Calls Ratio (Volume)</p>", unsafe_allow_html=True)
 
     except Exception as e:
         st.write("Data not found")
@@ -598,35 +616,40 @@ def analysisTile(ticker):
         st.markdown("<p style='text-align: center;'>Sharpe Ratio</p>", unsafe_allow_html=True)
 
         technicalsTile(ticker)
-        
 
 def technicalsTile(ticker):
     candles = readCandles(ticker)
-    calls_df, puts_df = readOptionsChain(ticker)
+    overview = readOverview(ticker)
+    # calls_df, puts_df = readOptionsChain(ticker)
 
-    options_df = calls_df.merge(puts_df, on="strike")
-    ticker_current_price = candles.iloc[-1]['Close']
+    # options_df = calls_df.merge(puts_df, on="strike")
+    # ticker_current_price = candles.iloc[-1]['Close']
 
-    atm_idx = (options_df['strike'] - ticker_current_price).abs().idxmin()
-    atm_row = options_df.loc[atm_idx]
+    # atm_idx = (options_df['strike'] - ticker_current_price).abs().idxmin()
+    # atm_row = options_df.loc[atm_idx]
     
-    call_iv = atm_row['impliedVolatility_x']
-    put_iv = atm_row['impliedVolatility_y']
-
-    sigma = (call_iv + put_iv) / 2
-
-    if sigma > 1.0:
-        sigma = sigma / 100.0
+    # call_iv = atm_row['impliedVolatility_x']
+    # put_iv = atm_row['impliedVolatility_y']
     
-    candles["Log Returns"] = getLogReturns(candles)
+    # sigma = (call_iv + put_iv) / 2
 
-    daily_mean = candles['Log Returns'].mean()
-    daily_variance = candles['Log Returns'].var()
+    # if sigma > 1.0:
+    #     sigma = sigma / 100.0
+    
+    # candles["Log Returns"] = getLogReturns(candles)
 
-    mu = (daily_mean * 252) + (0.5 * daily_variance * 252)
+    # daily_mean = candles['Log Returns'].mean()
+    # daily_variance = candles['Log Returns'].var()
+
+    # mu = (daily_mean * 252) + (0.5 * daily_variance * 252)
+
+    print(overview["Beta"])
+    mu = calculateCAPM(float(overview["Beta"]))
+
+    sigma = calculateVolatility(candles)
 
     st.markdown(f"<h2 style='text-align: center;'>   {sigma:.2f}</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>ATM Implied Volatility</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center;'>Volatility</p>", unsafe_allow_html=True)
 
     st.markdown(f"<h2 style='text-align: center;'>   {mu:.2f}</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center;'>Expected Returns</p>", unsafe_allow_html=True)
@@ -710,18 +733,13 @@ if new_ticker != st.session_state.new_ticker:
 
 titleTile(selected_ticker)
 
+chartTile(selected_ticker)
 st.divider()
 
-COL1, COL2 = st.columns([3, 2])
-with COL1:
-    chartTile(selected_ticker)
-with COL2:
-    sentimentTile(selected_ticker)
-
+sentimentTile(selected_ticker)
 st.divider()
 
 optionsChainTile(selected_ticker)
-
 st.divider()
 
 col1, col2 = st.columns(2)

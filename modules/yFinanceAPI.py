@@ -19,7 +19,7 @@ def saveNews(ticker, data):
 
 def getCandles(ticker):
     tick = yf.Ticker(ticker, session=session)
-    data = tick.history(period="max")
+    data = tick.history(period="max", auto_adjust=False)
     data = data.dropna()
     # data = yf.download(ticker, period='max')
     # data.columns = data.columns.get_level_values(0)
@@ -90,5 +90,6 @@ if __name__ == '__main__':
     # pass
 
     # tick = yf.Ticker("GOOG")
-    print(getCandles("GOOG"))
+    print(getCandles("GOOG").columns)
+    saveCandles("GOOG", getCandles("GOOG"))
     # print(tick.get_balance_sheet().index)

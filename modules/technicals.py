@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import scipy.stats as si
+from scipy.optimize import fsolve
 from datetime import datetime, timedelta, timezone
 
 def monteCarloSimul(S0, mu, sigma, T=1, dt=1/262, n_steps=262, n_sims=10000):
@@ -10,7 +11,7 @@ def monteCarloSimul(S0, mu, sigma, T=1, dt=1/262, n_steps=262, n_sims=10000):
     sigma: annual volatility
     T: Time horizon
     dt: Time step (daily)
-    n_sims: Number of "alternate universes"
+    n_sims: No. of simulations
     '''
     shocks = np.random.normal(0, 1, (n_steps, n_sims))
     price_paths = np.zeros_like(shocks)
@@ -39,8 +40,27 @@ def monteCarloSimul(S0, mu, sigma, T=1, dt=1/262, n_steps=262, n_sims=10000):
 
     return final_prices, percentile5, percentile95
 
-def getLogReturns(df):
-    return np.log(df["Close"] / df["Close"].shift(1))
+def __calculateGeometricReturns(df):
+    pass
+
+def __calculateLogReturns(df):
+    return np.log(df["Adj Close"] / df["Adj Close"].shift(1))
+
+def calculateCAPM(beta=0, E_Rm=0.1788, R_f=0.0367):
+    '''
+    beta: Beta
+    E_Rm: S&P 500 Expected Market Returns (17.88%)
+    R_f: US Risk-free Rate (3.67%)
+    '''
+    if not beta:
+        return None
+    
+    MRP = E_Rm - R_f # Market Risk Premium
+    scaled_prem = MRP * beta # Scaled Premium
+
+    expected_returns = scaled_prem + R_f # Expected Market Return
+
+    return expected_returns
 
 def getBBands(df, N=20, K=2):
     # Middle Band
@@ -106,13 +126,48 @@ def getSharpeRatio(df, period="1y", risk_free_rate=0.04):
 
     return sharpe_ratio
 
-def calculateOIPCR(callsOI, putsOI):
-    totalCallsOI = callsOI.sum()
-    totalPutsOI = putsOI.sum()
+def calculatePCR(calls, puts):
+    totalCalls = calls.sum()
+    totalPuts = puts.sum()
 
-    PCR_OI = totalPutsOI / totalCallsOI if totalCallsOI > 0 else 0
+    PCR = totalPuts / totalCalls if totalCalls > 0 else 0
+    return totalCalls, totalPuts, PCR
 
-    return totalCallsOI, totalPutsOI, PCR_OI
+# def calculateBlackScholesCall(S, K, T, r, sigma):
+#     d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+#     d2 = d1 - sigma * np.sqrt(T)
+#     call_price = S * si.norm.cdf(d1) - K * np.exp(-r * T) * si.norm.cdf(d2)
+#     return call_price
+
+# def calculateIV(price, S, K, T, r):
+#     func = lambda sigma: calculateBlackScholesCall(S, K, T, r, sigma) - price
+    
+#     initial_guess = 0.20
+#     iv = fsolve(func, initial_guess)[0]
+#     return iv
+
+def calculateVolatility(df):
+    df['Date'] = pd.to_datetime(df['Date'], utc=True)
+
+    today = datetime.now(timezone.utc)
+    delta = today - timedelta(days=365)
+
+    df = df[df["Date"] >= delta]
+    df["log_return"] = __calculateLogReturns(df)
+
+    daily_volatility = df["log_return"].std()
+    annual_volatility = daily_volatility * np.sqrt(252)
+
+    return annual_volatility
 
 if __name__ == "__main__":
-    pass
+    # S = 348.78      # Stock Price
+    # K = 350.00      # Strike Price
+    # T = 3 / 365    # 30 days to expiration
+    # r = 0.0367      # 5% risk-free rate
+    # C_market = 4.88 # Current Call market price
+
+    # iv = calculateIV(C_market, S, K, T, r)
+    # print(f"Implied Volatility: {iv * 100:.2f}%")
+
+    print(calculateCAPM(1.22))
