@@ -26,12 +26,10 @@ AV_API_KEY = os.getenv("AV_API_KEY")
 #     print("Saving Candle: Done!")
 #     print()
 
-
 def getOverview(ticker):
     try:
         fd = FundamentalData(key='AV_API_KEY')
         data, meta = fd.get_company_overview(symbol=ticker)
-        print("Getting Overview: Done!")
 
         return data, meta
     except Exception as e:
@@ -47,7 +45,7 @@ def saveOverview(ticker, data):
         for key, value in data.items():
             writer.writerow([key, value])
     
-    print("Saving Overview: Done!")
+    print("Saved: Overview")
     print()
 
 

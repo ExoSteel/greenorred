@@ -1,7 +1,7 @@
 import streamlit as st
 from modules.helper import readTicker, addTicker, readCandles, readPredictions, readOverview, readOptionsChain, readFearAndGreed
 from modules.alphaVantageAPI import getOverview, saveOverview
-from modules.yFinanceAPI import getCandles, saveCandles, getOptionsChain, saveOptionsChain
+from modules.yFinanceAPI import getCandles, saveCandles, getOptionsChain, saveOptionsChain, getBalanceSheet, saveBalanceSheet, getIncomeSTMT, saveIncomeSTMT
 from modules.finnhubAPI import getNews, saveNews
 from modules.finBertting import getPrediction, savePrediction
 from modules.fearAndGreed import getFearAndGreed, saveFearAndGreed
@@ -155,65 +155,74 @@ def titleTile(ticker):
     with col3:
         if st.button("Refresh"):
             st.cache_data.clear()
-
+            
             with st.spinner("Fetching fresh market data..."):
                 data = getNews(ticker)
-                if data is not None:
-                    saveNews(ticker, data)
+                if data is not None: saveNews(ticker, data)
 
                 data = getCandles(ticker)
-                if data is not None:
-                    saveCandles(ticker, data)
-
-                data, meta = getOverview(ticker)
-                if data is not None:
-                    saveOverview(ticker, data)
+                if data is not None: saveCandles(ticker, data)
 
                 calls_df, puts_df = getOptionsChain(ticker)
-                if calls_df is not None and puts_df is not None:
-                    saveOptionsChain(ticker, calls_df, puts_df)
+                if calls_df is not None and puts_df is not None: saveOptionsChain(ticker, calls_df, puts_df)
 
                 fng = getFearAndGreed()
-                if type(fng) == dict:
-                    saveFearAndGreed(fng)
+                if type(fng) == dict: saveFearAndGreed(fng)
+
+                balances = getBalanceSheet(ticker)
+                if balances is not None: saveBalanceSheet(ticker, balances)
+
+                incomeSTMT = getIncomeSTMT(ticker)
+                if incomeSTMT is not None: saveIncomeSTMT(ticker, incomeSTMT)
+
+                data, meta = getOverview(ticker)
+                if data is not None: saveOverview(ticker, data)
 
                 data = getPrediction(ticker)
-                if data is not None:
-                    savePrediction(ticker, data)
-            
+                if data is not None: savePrediction(ticker, data)
+
             st.rerun()
 
 def sentimentTile(ticker):
     st.subheader("General Sentiment")
 
-    preds = readPredictions(ticker)
+    try:
+        preds = readPredictions(ticker)
 
-    positives = 0
-    negatives = 0
-    neutrals = 0
-    for pred in preds:
-        if pred['label'] == "positive":
-            positives += 1
-        elif pred['label'] == "negative":
-            negatives += 1
-        else:
-            neutrals += 1
+        positives = 0
+        negatives = 0
+        neutrals = 0
+        for pred in preds:
+            if pred['label'] == "positive":
+                positives += 1
+            elif pred['label'] == "negative":
+                negatives += 1
+            else:
+                neutrals += 1
 
-    labels = ["Positive", "Neutral", "Negative"]
-    sizes = [positives, neutrals, negatives ]
+        labels = ["Positive", "Neutral", "Negative"]
+        sizes = [positives, neutrals, negatives ]
 
-    fig = px.pie(
-        values=sizes, 
-        names=labels,
-        color=labels,
-        color_discrete_map={
-            'Positive' : green,
-            'Neutral' : white,
-            'Negative' : red,
-            }
-    )
-    
-    st.plotly_chart(fig, width="stretch")
+        fig = px.pie(
+            values=sizes, 
+            names=labels,
+            color=labels,
+            color_discrete_map={
+                'Positive' : green,
+                'Neutral' : white,
+                'Negative' : red,
+                }
+        )
+        
+        st.plotly_chart(fig, width="stretch")
+    except Exception as e:
+        st.write("Data not found.")
+        print(
+            e,
+            "\n", type(e).__name__,
+            "\n Filename:", __file__,         
+            "\n Line:", e.__traceback__.tb_lineno
+        )
 
 def chartTile(ticker):
     timeframe = st.session_state.timeframe
@@ -602,6 +611,12 @@ def analysisTile(ticker):
                 marginOS = (float(overview["AnalystTargetPrice"]) - float(ticker_current_price)) / float(ticker_current_price) * 100
                 st.markdown(f"<h2 style='text-align: center;'>   {marginOS:.2f}%</h2>", unsafe_allow_html=True)
                 st.markdown("<p style='text-align: center;'>Margin of Safety</p>", unsafe_allow_html=True)
+            
+            sharpe_ratio = getSharpeRatio(candles)
+            st.markdown(f"<h2 style='text-align: center;'>   {sharpe_ratio:.2f}</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center;'>Sharpe Ratio</p>", unsafe_allow_html=True)
+
+            technicalsTile(ticker)
         except Exception as e:
             print(
                 type(e).__name__,          # TypeError
@@ -610,12 +625,6 @@ def analysisTile(ticker):
             )
             print(e)
             st.write("Data not found.")
-
-        sharpe_ratio = getSharpeRatio(candles)
-        st.markdown(f"<h2 style='text-align: center;'>   {sharpe_ratio:.2f}</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center;'>Sharpe Ratio</p>", unsafe_allow_html=True)
-
-        technicalsTile(ticker)
 
 def technicalsTile(ticker):
     candles = readCandles(ticker)
@@ -643,9 +652,7 @@ def technicalsTile(ticker):
 
     # mu = (daily_mean * 252) + (0.5 * daily_variance * 252)
 
-    print(overview["Beta"])
     mu = calculateCAPM(float(overview["Beta"]))
-
     sigma = calculateVolatility(candles)
 
     st.markdown(f"<h2 style='text-align: center;'>   {sigma:.2f}</h2>", unsafe_allow_html=True)
@@ -700,31 +707,25 @@ if new_ticker != st.session_state.new_ticker:
     try:
         news = getNews(new_ticker)
         saveNews(new_ticker, news)
-    except Exception as e:
-        print(e)
 
-    try:
         candles = getCandles(new_ticker)
         saveCandles(new_ticker, candles)
-    except Exception as e:
-        print(e)
 
-    try:
         calls_df, puts_df = getOptionsChain(new_ticker)
         saveOptionsChain(new_ticker, calls_df, puts_df)
-    except Exception as e:
-        print(e)
 
-    try: 
         fng = getFearAndGreed()
         if type(fng) == dict:
             saveFearAndGreed(fng)
-    except Exception as e:
-        print(e)
 
-    try:
         prediction = getPrediction(new_ticker)
         savePrediction(new_ticker, prediction)
+
+        balances = getBalanceSheet(new_ticker)
+        saveBalanceSheet(new_ticker, balances)
+
+        incomeSTMT = getIncomeSTMT(new_ticker)
+        saveIncomeSTMT(new_ticker, incomeSTMT)
     except Exception as e:
         print(e)
 
