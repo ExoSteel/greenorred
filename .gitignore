@@ -5,6 +5,7 @@
 .local_model
 
 modules/__pycache__/
+modueles/api/__pycache__/
 
 balances/*
 calls/*
@@ -15,4 +16,9 @@ others/*
 overviews/*
 predictions/*
 puts/*
+<<<<<<< HEAD
 statements/*
+=======
+others/*
+financials/*
+>>>>>>> parent of ec7c4e6 (backtesting)
