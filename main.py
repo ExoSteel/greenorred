@@ -1,10 +1,13 @@
 import streamlit as st
-from modules.helper import readTicker, addTicker, readCandles, readPredictions, readOverview, readOptionsChain, readFearAndGreed
-from modules.alphaVantageAPI import getOverview, saveOverview
-from modules.yFinanceAPI import getCandles, saveCandles, getOptionsChain, saveOptionsChain, getBalanceSheet, saveBalanceSheet, getIncomeSTMT, saveIncomeSTMT
-from modules.finnhubAPI import getNews, saveNews
-from modules.finBertting import getPrediction, savePrediction
-from modules.fearAndGreed import getFearAndGreed, saveFearAndGreed
+# from streamlit_navigation_bar import st_navbar
+from modules.stockChart import stockChart
+from modules.sentimentAnalysis import sentimentAnalysis
+from modules.api.helper import readTicker, addTicker, readCandles, readPredictions, readOverview, readOptionsChain, readFearAndGreed
+from modules.api.alphaVantageAPI import getOverview, saveOverview
+from modules.api.yFinanceAPI import getCandles, saveCandles, getOptionsChain, saveOptionsChain, getBalanceSheet, saveBalanceSheet, getIncomeSTMT, saveIncomeSTMT
+from modules.api.finnhubAPI import getNews, saveNews, getFinancials, saveFinancials
+from modules.api.finBertting import readNews, getPrediction, savePrediction
+from modules.api.fearAndGreed import getFearAndGreed, saveFearAndGreed
 from modules.technicals import monteCarloSimul, getResistanceLevel, getSharpeRatio, getBBands, calculatePCR, calculateVolatility, calculateCAPM
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
@@ -32,9 +35,10 @@ st.set_page_config(
     layout="wide",
     page_title="Main Page"
 )
+# page = st_navbar(["Overview", "Stock", "Analysis", "Backtesting"])
 
 if "timeframe" not in st.session_state:
-    st.session_state.timeframe = "1M"
+    st.session_state.timeframe = "3M"
 if "new_ticker" not in st.session_state:
     st.session_state.new_ticker = ""
 
@@ -129,7 +133,7 @@ def marketSentimentTile():
                 )
             )
 
-        st.sidebar.plotly_chart(fig)
+        st.sidebar.plotly_chart(fig, height=400)
     except Exception as e:
         print(e)
         st.write("Data not found.")
@@ -181,212 +185,42 @@ def titleTile(ticker):
                 data = getPrediction(ticker)
                 if data is not None: savePrediction(ticker, data)
 
+                data = getFinancials(ticker)
+                if data is not None: saveFinancials(ticker, data)
+
             st.rerun()
 
 def sentimentTile(ticker):
     st.subheader("General Sentiment")
 
+    sentimentAnalysis(ticker)
+
+def newsTile(ticker):
+    st.subheader("Recent News")
+
     try:
-        preds = readPredictions(ticker)
+        data = readNews(ticker)
 
-        positives = 0
-        negatives = 0
-        neutrals = 0
-        for pred in preds:
-            if pred['label'] == "positive":
-                positives += 1
-            elif pred['label'] == "negative":
-                negatives += 1
-            else:
-                neutrals += 1
+        newsFeed = {
+            "Headline": [],
+            "Summary": [],
+            "Date": []
+        }
 
-        labels = ["Positive", "Neutral", "Negative"]
-        sizes = [positives, neutrals, negatives ]
+        for i in range(10):
+            newsFeed["Headline"].append(data[i]["headline"])
+            newsFeed["Summary"].append(data[i]["summary"])
+            newsFeed["Date"].append(data[i]["date"])
 
-        fig = px.pie(
-            values=sizes, 
-            names=labels,
-            color=labels,
-            color_discrete_map={
-                'Positive' : green,
-                'Neutral' : white,
-                'Negative' : red,
-                }
-        )
-        
-        st.plotly_chart(fig, width="stretch")
+        st.table(newsFeed, border="horizontal", height=400)
     except Exception as e:
-        st.write("Data not found.")
-        print(
-            e,
-            "\n", type(e).__name__,
-            "\n Filename:", __file__,         
-            "\n Line:", e.__traceback__.tb_lineno
-        )
+        print(e)
+        st.write("Data not found")
 
 def chartTile(ticker):
     timeframe = st.session_state.timeframe
-
-    try:
-        df = readCandles(ticker)
-
-        df['Date'] = pd.to_datetime(df['Date'], utc=True)
-        df['rolling20'] = df['Close'].rolling(20).mean()
-        df['rolling50'] = df['Close'].rolling(50).mean()
-        df['rolling200'] = df['Close'].rolling(200).mean()
-
-        fig = go.Figure(data=[
-            go.Candlestick(
-                x = df['Date'],
-                open = df['Open'],
-                high = df['High'],
-                low = df['Low'],
-                close = df['Close'],
-                name = "Candles", 
-                increasing_line_color = green, 
-                decreasing_line_color = red,
-                visible='legendonly'
-                )
-            ]
-        )
-
-        fig.add_trace(go.Scatter(
-            x = df["Date"],
-            y = df["Close"],
-            name = "Close",
-            line = dict(color=green, width=2)
-            )
-        )
-
-        fig.add_trace(go.Scatter(
-            x = df["Date"],
-            y = df['rolling200'],
-            mode = "lines",
-            name = "200 SMA",
-            line = dict(color=orange, width=1)
-            )
-        )
-
-        fig.add_trace(go.Scatter(
-            x = df["Date"],
-            y = df['rolling50'],
-            mode = "lines",
-            name = "50 SMA",
-            line = dict(color=yellow, width=1)
-            )
-        )
-
-        fig.add_trace(go.Scatter(
-            x = df["Date"],
-            y = df['rolling20'],
-            mode = "lines",
-            name = "20 SMA",
-            line = dict(color=purple, width=1)
-            )
-        )
-
-        # R1, R2 = getResistanceLevel(df)
-
-        # fig.add_hline(
-        #     y = R1,
-        #     line_color = 'rgba(255, 0, 0, 0.75)',
-        #     name = "Resist 1"
-        # )
-
-        # fig.add_hline(
-        #     y = R2,
-        #     line_color = 'rgba(255, 0, 0, 0.75)',
-        #     name = "Resist 2"
-        # )
-        
-        df = getBBands(df)
-
-        fig.add_trace(go.Scatter(
-            x=df["Date"],
-            y=df['Real Middle Band'],
-            fill=None,
-            mode='lines',
-            line_color='rgba(255, 50, 50, 0.5)',
-            line=dict(width=2),
-            name='BB middle',
-            # visible='legendonly'
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=df["Date"],
-            y=df['Real Upper Band'],
-            fill=None,
-            mode='lines',
-            line_color='rgba(100, 100, 255, 0.5)',
-            line=dict(width=2),
-            name='BB upper',
-            # visible='legendonly'
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=df["Date"],
-            y=df['Real Lower Band'],
-            opacity=0.3,
-            fill='tonexty',
-            line=dict(width=2),
-            name='BB lower',
-            line_color='rgba(100, 100, 255, 0.5)',
-            mode='lines', fillcolor='rgba(100, 100, 255, 0.1)',
-            # visible='legendonly'
-        ))
-
-        today = datetime.now(timezone.utc)
-        days = 31
-        
-        if timeframe == "1D":
-            days = 1
-        elif timeframe == "1W":
-            days = 7
-        elif timeframe == "1M":
-            days = 31
-        elif timeframe == "3M":
-            days = 180
-        elif timeframe == "1Y":
-            days = 365
-        else:
-            days = (today - df["Date"].min()).days 
-
-        delta = today - timedelta(days=days)
-        upper, lower = df[df["Date"] >= delta].max()["High"] * 1.05, df[df["Date"] >= delta].min()["Low"] * 0.95
-
-        fig.update_layout(
-            xaxis=dict(
-                range=[delta, today],
-                type="date",
-                rangebreaks=[
-                    dict(bounds=["sat", "mon"]) # Hides everything between Saturday morning and Monday morning
-                ]
-            ),
-            xaxis_rangeslider_visible=False,
-            yaxis=dict(
-                range=[lower, upper]
-            ),
-            legend=dict(
-                orientation="v",
-                yanchor="auto",
-                y=1,
-                xanchor="right",
-                x=-0.05
-            )
-        )
-
-        st.plotly_chart(fig, width="stretch")
-
-        st.pills("Timeframe", ["1D", "1W", "1M", "3M", "1Y", "ALL"], default="1M", key="timeframe")
-
-    except Exception as e:
-        st.write("Data not found.")
-        print(
-            e,
-            "\n", type(e).__name__,
-            "\n Filename:", __file__,         
-            "\n Line:", e.__traceback__.tb_lineno
-        )
+    
+    stockChart(ticker, timeframe)
 
 def optionsChainTile(ticker):
     st.title("Options Chain")
@@ -695,11 +529,10 @@ def technicalsTile(ticker):
 
     st.plotly_chart(fig)
 
-
 selected_ticker = st.sidebar.selectbox("Choose a quote:", tickers)
 new_ticker = st.sidebar.text_input("Add a new ticker:")
-st.sidebar.divider()
-marketSentimentTile()
+# st.sidebar.divider()
+# marketSentimentTile()
 
 if new_ticker != st.session_state.new_ticker:
     addTicker(new_ticker)
@@ -737,7 +570,12 @@ titleTile(selected_ticker)
 chartTile(selected_ticker)
 st.divider()
 
-sentimentTile(selected_ticker)
+col1, col2 = st.columns(2)
+
+with col1:
+    newsTile(selected_ticker)
+with col2:
+    sentimentTile(selected_ticker)
 st.divider()
 
 optionsChainTile(selected_ticker)

@@ -4,17 +4,17 @@ from curl_cffi.requests import Session
 
 session = Session(impersonate="chrome")
 
-def getNews(ticker):
-    tick = yf.Ticker(ticker, session=session)
-    return tick.news
+# def getNews(ticker):
+#     tick = yf.Ticker(ticker, session=session)
+#     return tick.news
 
-def saveNews(ticker, data):
-    if not os.path.exists("./news"):
-        os.makedirs("./news")
+# def saveNews(ticker, data):
+#     if not os.path.exists("./news"):
+#         os.makedirs("./news")
 
-    with open(f"./news/news_{ticker}.txt", 'wt') as infile:
-        for article in data:
-            infile.write(f"{article['content']['title']}, {article['content']['summary']}\n")
+#     with open(f"./news/news_{ticker}.txt", 'wt') as infile:
+#         for article in data:
+#             infile.write(f"{article['content']['title']}, {article['content']['summary']}\n")
 
 
 def getCandles(ticker):
@@ -90,6 +90,7 @@ if __name__ == '__main__':
     # pass
 
     # tick = yf.Ticker("GOOG")
-    print(getCandles("GOOG").columns)
-    saveCandles("GOOG", getCandles("GOOG"))
+    # print(getCandles("GOOG").columns)
+    # saveCandles("GOOG", getCandles("GOOG"))
     # print(tick.get_balance_sheet().index)
+    pass

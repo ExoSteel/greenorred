@@ -26,19 +26,19 @@ def readCandles(ticker):
     except Exception as e:
         print(e)
 
-def readNews(ticker):
-    try:
-        with open(f"./news/news_{ticker}.txt", 'rt') as infile:
-            raw = infile.readlines()
-            data = [d.strip("\n") for d in raw]
+# def readNews(ticker):
+#     try:
+#         with open(f"./news/news_{ticker}.txt", 'rt') as infile:
+#             raw = infile.readlines()
+#             data = [d.strip("\n") for d in raw]
     
-        return data
-    except Exception as e:
-        print(e)
+#         return data
+#     except Exception as e:
+#         print(e)
 
 def readPredictions(ticker):
     try:
-        with open(f"./predictions/predictions_{ticker}.txt", "rt") as infile:
+        with open(f"./predictions/predictions_{ticker}.json", "rt") as infile:
             data = json.loads(infile.read())
         
         return data

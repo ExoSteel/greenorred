@@ -2,16 +2,17 @@
 .vscode/
 .txt
 .env
+.local_model
 
 modules/__pycache__/
 
+balances/*
+calls/*
 daily/*
+financials/*
 news/*
+others/*
 overviews/*
 predictions/*
-calls/*
 puts/*
-others/*
-financials/*
-balances/*
 statements/*
